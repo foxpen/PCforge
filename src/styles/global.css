@@ -1354,3 +1354,144 @@ footer { position:relative; z-index:1; text-align:center; padding:4rem 2rem; bor
 .cl-row { grid-template-columns:1fr auto; }
 .cl-specs,.cl-score { display:none; }
 }
+
+/* ============================================================
+   LAYOUT OVERRIDES — velký monitor, breathing room
+   ============================================================ */
+
+/* Globální container — větší, s fluid paddingem */
+.main,
+.presets,
+.tabs-wrap,
+.compare-view,
+.compare-inner,
+.catalog-view,
+.catalog-inner,
+.canrun-view,
+.canrun-wrap {
+  max-width: 1600px !important;
+  padding-left: clamp(2rem, 5vw, 6rem) !important;
+  padding-right: clamp(2rem, 5vw, 6rem) !important;
+}
+
+/* Nav — full width s fluid paddingem */
+nav {
+  padding: 0 clamp(2rem, 5vw, 6rem) !important;
+}
+
+/* Hero — větší a vzdušnější */
+.hero {
+  padding: 140px clamp(2rem, 8vw, 12rem) 80px !important;
+}
+.hero h1 {
+  font-size: clamp(3rem, 6vw, 5.5rem) !important;
+  margin-bottom: 1.75rem !important;
+}
+.hero p {
+  font-size: 1.15rem !important;
+  max-width: 620px !important;
+  margin-bottom: 3rem !important;
+}
+
+/* Stats row */
+.stats {
+  padding: 0 clamp(2rem, 5vw, 6rem) 3rem !important;
+  gap: 1.25rem !important;
+}
+.stat-pill {
+  padding: 0.85rem 2rem !important;
+  border-radius: 16px !important;
+}
+.stat-pill strong { font-size: 1.2rem !important; }
+.stat-pill span   { font-size: 0.72rem !important; }
+
+/* Tabs */
+.tabs-wrap {
+  padding-bottom: 2.5rem !important;
+}
+.tabs {
+  gap: 0.5rem !important;
+  padding: 0.4rem !important;
+}
+.tab {
+  padding: 0.6rem 1.5rem !important;
+  font-size: 0.88rem !important;
+}
+
+/* Hlavní grid — konfigurátor + sidebar */
+.main {
+  grid-template-columns: 1fr 420px !important;
+  gap: 2.5rem !important;
+  padding-bottom: 8rem !important;
+  align-items: start !important;
+}
+
+/* Kategorie — větší a vzdušnější */
+.cats { gap: 1rem !important; }
+.cat-card { border-radius: 20px !important; }
+.cat-head { padding: 1.25rem 1.5rem !important; gap: 1.25rem !important; }
+.cat-ico  { width: 44px !important; height: 44px !important; font-size: 1.2rem !important; border-radius: 13px !important; }
+.cat-n    { font-size: 0.95rem !important; }
+.cat-s    { font-size: 0.78rem !important; }
+
+/* Items v kategorii */
+.item { padding: 1rem 1.5rem !important; gap: 1.25rem !important; }
+.item-name  { font-size: 0.9rem !important; }
+.item-specs { font-size: 0.72rem !important; }
+.item-price .p { font-size: 0.95rem !important; }
+
+/* Shop picker */
+.shop-picker { padding: 0.6rem 1.5rem 0.75rem 4rem !important; gap: 0.4rem !important; }
+.shop-pick-row { padding: 0.5rem 0.875rem !important; border-radius: 10px !important; }
+
+/* Sidebar */
+.sidebar { top: 88px !important; gap: 1.25rem !important; }
+.sum-card { border-radius: 22px !important; }
+.sum-top  { padding: 1.4rem 1.5rem !important; }
+.sum-ttl  { font-size: 0.92rem !important; }
+.sum-rows { padding: 0.5rem 0 !important; }
+.sum-row  { padding: 0.65rem 1.5rem !important; gap: 0.875rem !important; }
+.sum-ico  { font-size: 1rem !important; }
+.sum-cat  { font-size: 0.62rem !important; }
+.sum-name { font-size: 0.82rem !important; }
+.sum-price { font-size: 0.8rem !important; }
+.sum-bot  { padding: 1.4rem 1.5rem !important; }
+.tot-amt  { font-size: 2.25rem !important; }
+.btn-openall-side { padding: 0.875rem !important; font-size: 0.9rem !important; }
+
+/* Compat */
+.compat-wrap  { padding: 1.4rem 1.5rem !important; border-radius: 22px !important; margin-top: 0 !important; }
+.compat-item  { padding: 0.5rem 0.75rem !important; font-size: 0.78rem !important; }
+
+/* Presets */
+.presets { margin-top: 0 !important; padding-bottom: 0 !important; }
+.pg { gap: 1.25rem !important; }
+.pc { padding: 1.75rem !important; border-radius: 22px !important; gap: 0.5rem !important; }
+.p-name  { font-size: 1.1rem !important; }
+.p-price { font-size: 1.65rem !important; }
+.btn-preset { padding: 0.75rem !important; font-size: 0.88rem !important; }
+
+/* Catalog */
+.cat-bar { margin-bottom: 1.5rem !important; gap: 1.25rem !important; }
+.catalog-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important; gap: 1.25rem !important; }
+.cg-card { padding: 1.4rem !important; border-radius: 20px !important; }
+.cg-name  { font-size: 0.95rem !important; }
+.cg-price { font-size: 1.1rem !important; }
+.cl-row   { padding: 1rem 1.4rem !important; border-radius: 14px !important; }
+
+/* Can I Run It */
+.canrun-games { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important; gap: 1.25rem !important; }
+.game-card    { border-radius: 22px !important; }
+.game-banner  { height: 100px !important; }
+.game-title   { font-size: 1rem !important; }
+
+/* Compare */
+.compare-inner > div { gap: 1.25rem !important; }
+.compare-card { padding: 1.5rem !important; border-radius: 22px !important; }
+
+/* Prog bar */
+.prog-bar { height: 5px !important; border-radius: 3px !important; }
+.sec-label { font-size: 0.7rem !important; letter-spacing: 0.12em !important; }
+
+/* Footer */
+footer { padding: 5rem clamp(2rem, 5vw, 6rem) !important; }
