@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
+import { useLocalStorage } from './useLocalStorage.js'
 import { cats, getItem } from '../data/cats.js'
 
 export function useBuild() {
-  const [sel, setSel] = useState({})
-  const [selShop, setSelShop] = useState({})
+  const [sel, setSel]         = useLocalStorage('pcforge_sel', {})
+  const [selShop, setSelShop] = useLocalStorage('pcforge_selShop', {})
 
   const pick = useCallback((catKey, id) => {
     setSel(prev => {
@@ -34,6 +35,11 @@ export function useBuild() {
     setSelShop({})
   }, [])
 
+  const clearBuild = useCallback(() => {
+    setSel({})
+    setSelShop({})
+  }, [])
+
   const total = Object.entries(sel).reduce((sum, [k, id]) => {
     const it = getItem(id)
     if (!it) return sum
@@ -44,5 +50,5 @@ export function useBuild() {
 
   const count = Object.keys(sel).length
 
-  return { sel, selShop, pick, pickShop, removePick, loadPreset, total, count }
+  return { sel, selShop, pick, pickShop, removePick, loadPreset, clearBuild, total, count }
 }
