@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { achievements } from '../data/achievements.js'
 
-export default function AchievementHud({ level, xpPct, count, unlocked, totalXp, stats }) {
+export default function AchievementHud({ level, xpPct, count, unlocked, totalXp, stats, onReset }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -24,7 +24,7 @@ export default function AchievementHud({ level, xpPct, count, unlocked, totalXp,
               <div className="ach-panel-title">🏆 Tvůj profil</div>
               <div className="ach-panel-sub">Level {level} · {totalXp} XP celkem</div>
             </div>
-            <button onClick={() => setOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'1.2rem', color:'var(--text-2)' }}>✕</button>
+          <button onClick={() => setOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'1.2rem', color:'var(--text-2)' }}>✕</button>
           </div>
 
           <div className="ach-level-bar-wrap">
@@ -62,6 +62,16 @@ export default function AchievementHud({ level, xpPct, count, unlocked, totalXp,
               </div>
             ))}
           </div>
+
+          {onReset && (
+            <button onClick={onReset} style={{
+              marginTop:'0.75rem', width:'100%', padding:'0.5rem',
+              background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.25)',
+              color:'#f87171', borderRadius:'10px', cursor:'pointer', fontSize:'0.72rem'
+            }}>
+              🗑️ Resetovat vše
+            </button>
+          )}
         </div>
       )}
     </>
