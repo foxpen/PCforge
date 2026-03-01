@@ -54,14 +54,23 @@ function tv(obj, theme) {
   return theme === 'light' ? obj.light : obj.dark
 }
 
-export default function Nav({ theme, onToggleTheme, total, count, sel, selShop, onShare, onExport, palette, onPalette, onRemove, onOpenAll, onSaveBuild }) {
+export default function Nav({ theme, onToggleTheme, total, count, sel, selShop, onShare, onExport, palette, onPalette, onRemove, onOpenAll, onSaveBuild, onGoHome }) {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [cartOpen, setCartOpen]       = useState(false)
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-[clamp(1.5rem,5vw,6rem)] h-16 glass border-b" style={{borderColor:'var(--glass-b)'}}>
-      <div className="text-[clamp(1rem,1.5vw,1.25rem)] font-extrabold tracking-tight" style={{color:'var(--tx)'}}>
-        PC<span style={{color:'var(--accent)'}}>Forge</span>
+      <div className="flex items-center gap-3">
+        <div className="text-[clamp(1rem,1.5vw,1.25rem)] font-extrabold tracking-tight" style={{color:'var(--tx)'}}>
+          PC<span style={{color:'var(--accent)'}}>Forge</span>
+        </div>
+        {onGoHome && (
+          <button onClick={onGoHome} title="Hlavní stránka"
+            className="w-8 h-8 rounded-lg glass flex items-center justify-center cursor-pointer text-sm border-none transition-all hover:scale-105"
+            style={{color:'var(--tx2)', borderColor:'var(--glass-b)'}}>
+            🏠
+          </button>
+        )}
       </div>
       <div className="flex items-center gap-3">
 

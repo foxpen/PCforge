@@ -4,17 +4,63 @@ import { games } from '../data/games.js'
 
 const SLOT_ORDER = ['case','mb','cpu','cool','gpu','ram','ssd','psu']
 const SLOT_META = {
-  case: { icon:'🖥️', label:'Skříň',         desc:'Drží vše pohromadě' },
-  mb:   { icon:'🔌', label:'Základní deska', desc:'Propojuje komponenty' },
-  cpu:  { icon:'🧠', label:'Procesor',       desc:'Mozek počítače' },
-  cool: { icon:'❄️', label:'Chlazení',       desc:'Chladí procesor' },
-  gpu:  { icon:'🎮', label:'Grafická karta', desc:'Vykresluje grafiku' },
-  ram:  { icon:'💾', label:'RAM',            desc:'Krátkodobá paměť' },
-  ssd:  { icon:'💿', label:'Úložiště',       desc:'Ukládá data' },
-  psu:  { icon:'⚡', label:'Zdroj',          desc:'Dodává energii' },
+  case: { icon:'🖥️', label:'Skříň',         desc:'Drží vše pohromadě',
+    tooltip:'Domek pro tvoje komponenty. Chrání je před prachem, kočkami a zvědavými prsty. Čím větší, tím víc se tam vejde – a tím víc RGB můžeš nacpat.' },
+  mb:   { icon:'🔌', label:'Základní deska', desc:'Propojuje komponenty',
+    tooltip:'Nervový systém počítače. Všechno se zapojuje sem – CPU, RAM, GPU, disky. Když vybereš špatnou, nic ti nepasuje. Jako LEGO, ale dražší.' },
+  cpu:  { icon:'🧠', label:'Procesor',       desc:'Mozek počítače',
+    tooltip:'Mozek celé operace. Čím víc jader, tím víc věcí najednou – jako kdyby tvůj mozek měl 16 rukou. AMD nebo Intel? Věčná válka.' },
+  cool: { icon:'❄️', label:'Chlazení',       desc:'Chladí procesor',
+    tooltip:'Procesor se zahřívá jako plotýnka. Tohle ho udržuje v klidu. Vzduch nebo voda? Vzduch = spolehlivé a tiché. Voda = cool faktor (doslova).' },
+  gpu:  { icon:'🎮', label:'Grafická karta', desc:'Vykresluje grafiku',
+    tooltip:'Kreslí všechno co vidíš na monitoru. Bez ní by Cyberpunk vypadal jako PowerPoint prezentace. Nejdražší díl sestavy – a taky nejdůležitější pro gaming.' },
+  ram:  { icon:'💾', label:'RAM',            desc:'Krátkodobá paměť',
+    tooltip:'Krátkodobá paměť počítače. Čím víc, tím víc tabů v Chrome můžeš mít otevřených. 16 GB = základ, 32 GB = klid na duši.' },
+  ssd:  { icon:'💿', label:'Úložiště',       desc:'Ukládá data',
+    tooltip:'Tady bydlí tvoje hry, fotky a 47 GB updatů. NVMe SSD = sekundy bootování. Starý HDD? To je jako jezdit na kole po dálnici.' },
+  psu:  { icon:'⚡', label:'Zdroj',          desc:'Dodává energii',
+    tooltip:'Srdce počítače – pumpuje elektřinu do všeho. Nešetři na zdroji! Levný zdroj = odpálená základovka. 80+ Gold certifikace = tvůj nejlepší kamarád.' },
 }
 const TIER_COLORS = { budget:'var(--green)', mid:'var(--accent)', high:'var(--accent2)' }
 const TIER_LABELS = { budget:'Budget', mid:'Střední', high:'High-end' }
+
+/* Vtipné + poučné tipy pro jednotlivé komponenty */
+const ITEM_TIPS = {
+  // CPU
+  'r5-5600':   'Nejlepší poměr cena/výkon. Zvládne všechno co běžný smrtelník potřebuje.',
+  'r7-7700':   'Osmijádro na novém AM5. Budoucnost bez starostí.',
+  'i5-13600k': 'Hybridní šelma – 6 výkonných + 8 úsporných jader. Intel se rozjel.',
+  'r9-7950x':  'Zbytečný pro gaming, nezbytný pro ego. A taky pro 3D rendering.',
+  // GPU
+  'rx6600':    'Solidní 1080p gaming za rozumné peníze. Na Fortňák bohatě stačí.',
+  'rtx4060':   'DLSS 3 dělá zázraky. 1080p Ultra bez problémů.',
+  'rtx4070':   '1440p sweet spot. Ray tracing konečně funguje plynule.',
+  'rtx4090':   'Overkill? Jasně. Chceš ji? Taky jasně. 4K ultra ve všem.',
+  // RAM
+  'ram16':     '16 GB stačí na gaming. Chrome bude mít jiný názor.',
+  'ram32':     '32 GB = zlatý standard 2024. Klidný spánek.',
+  'ram32ddr5': 'DDR5 je budoucnost. Vyšší frekvence, nižší latence časem.',
+  // MB
+  'b550':      'Spolehlivá klasika pro AM4. Žádné experimenty, žádné problémy.',
+  'b650':      'AM5 s WiFi 6E. Připravenost na další generaci CPU.',
+  'z790':      'High-end Intel deska. PCIe 5.0, DDR5 a všechny vychytávky.',
+  // SSD
+  'ssd500':    'SATA SSD – pomalejší ale levný. Na systém stačí.',
+  'nvme1t':    'NVMe raketa. Hry se načítají než stihneš mrknout.',
+  'nvme2t':    '2 TB NVMe. Všechny hry + všechny projekty a stále místo.',
+  // PSU
+  'psu550':    '550W pro skromné sestavy. Nekrmí bestie ale spolehlivý.',
+  'psu750':    '80+ Gold, tichý, spolehlivý. Zlatý standard pro gaming PC.',
+  'psu1000':   'Platinum efektivita. Pro RTX 4090 a podobné elektrožrouty.',
+  // Case
+  'h510':      'Kompaktní, čistý design. Cable management snadno.',
+  'o11':       'Legendární vitrina. Ukážeš všechno co máš uvnitř.',
+  'mesh2':     'Nejlepší airflow v branži. Tvoje komponenty budou dýchat.',
+  // Cooling
+  'box':       'Přibalený v krabici s CPU. Zdarma, funguje, ale sotva.',
+  'ak620':     'Tower chladič za pakatel. Tiší než AIO a chladí skoro stejně.',
+  'kraken':    'AIO vodní chlazení. Vypadá sexy, chladí parádně, trochu dražší.',
+}
 
 function getTier(item) {
   const c = cats
@@ -290,10 +336,11 @@ function GameCheckPanel({ sel }) {
 
 
 /* ═══ EZ MODE MAIN ═══ */
-export default function EZMode({ sel, selShop, total, count, onPick, onRemove, onSaveBuild, onShare, onSwitchMode, favorites, onToggleFavorite }) {
-  const [activeCat, setActiveCat] = useState('case')
-  const [saveOpen, setSaveOpen]   = useState(false)
-  const [saveName, setSaveName]   = useState('')
+export default function EZMode({ sel, selShop, total, count, onPick, onRemove, onSaveBuild, onShare, onSwitchMode, onGoHome, favorites, onToggleFavorite }) {
+  const [activeCat, setActiveCat]   = useState('case')
+  const [saveOpen, setSaveOpen]     = useState(false)
+  const [saveName, setSaveName]     = useState('')
+  const [hoveredSlot, setHoveredSlot] = useState(null)
 
   const filledCount = SLOT_ORDER.filter(k => !!sel[k]).length
   const progress = Math.round(filledCount / 8 * 100)
@@ -320,6 +367,11 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
       <div className="relative z-10 px-[clamp(1.5rem,5vw,6rem)] pt-6 pb-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
+            <button onClick={onGoHome} title="Hlavní stránka"
+              className="w-8 h-8 rounded-lg glass flex items-center justify-center cursor-pointer text-sm border-none transition-all hover:scale-105"
+              style={{color:'var(--tx2)'}}>
+              🏠
+            </button>
             <span className="text-[0.68rem] font-bold uppercase tracking-widest" style={{color:'var(--tx2)'}}>🧩 EZ Mode</span>
             <span className="font-mono text-[0.68rem]" style={{color:'var(--tx3)'}}>{filledCount}/8</span>
           </div>
@@ -332,6 +384,18 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
               style={{color:'var(--accent)', border:'1px solid var(--accent-b)'}}>
               ⚙️ Advanced
             </button>
+          </div>
+        </div>
+
+        {/* Tooltip bublina pro aktuální kategorii */}
+        <div className="glass rounded-2xl px-4 py-3 mb-4 transition-all"
+          style={{border:'1px solid var(--accent2-b)', background:'var(--accent2-s)'}}>
+          <div className="flex items-start gap-3">
+            <span className="text-xl flex-shrink-0 mt-0.5">{SLOT_META[activeCat]?.icon}</span>
+            <div>
+              <div className="font-semibold text-[0.88rem] mb-0.5" style={{color:'var(--accent2)'}}>{SLOT_META[activeCat]?.label}</div>
+              <div className="text-[0.78rem] leading-relaxed" style={{color:'var(--tx2)'}}>{SLOT_META[activeCat]?.tooltip}</div>
+            </div>
           </div>
         </div>
 
@@ -441,32 +505,42 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
               )}
             </div>
 
-            <div className="p-2 flex flex-col gap-1.5" style={{maxHeight:360, overflowY:'auto'}}>
+            <div className="p-2 flex flex-col gap-1.5" style={{maxHeight:420, overflowY:'auto'}}>
               {cats[activeCat]?.items.map(it => {
                 const isSelected = sel[activeCat] === it.id
                 const tier = getTier(it)
+                const tip = ITEM_TIPS[it.id]
                 return (
                   <div key={it.id}
                     onClick={() => handleSelect(activeCat, it.id)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all"
+                    className="flex flex-col rounded-xl cursor-pointer transition-all"
                     style={{
                       background: isSelected ? 'var(--accent2-s)' : 'var(--panel)',
                       border: isSelected ? '1.5px solid var(--accent2-b)' : '1.5px solid var(--panel-b)',
                     }}
                     onMouseEnter={e => { if(!isSelected) e.currentTarget.style.background='var(--panel-h)' }}
                     onMouseLeave={e => { if(!isSelected) e.currentTarget.style.background=isSelected?'var(--accent2-s)':'var(--panel)' }}>
-                    <div style={{width:6,height:6,borderRadius:'50%',flexShrink:0,background:TIER_COLORS[tier]}} />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-[0.82rem]" style={{color:'var(--tx)'}}>{it.name}</div>
-                      <div className="font-mono text-[0.68rem] mt-0.5" style={{color:'var(--tx2)'}}>
-                        {it.specs} · <span style={{color:TIER_COLORS[tier], fontWeight:600}}>{TIER_LABELS[tier]}</span>
+                    <div className="flex items-center gap-3 px-3 py-2.5">
+                      <div style={{width:6,height:6,borderRadius:'50%',flexShrink:0,background:TIER_COLORS[tier]}} />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-[0.82rem]" style={{color:'var(--tx)'}}>{it.name}</div>
+                        <div className="font-mono text-[0.68rem] mt-0.5" style={{color:'var(--tx2)'}}>
+                          {it.specs} · <span style={{color:TIER_COLORS[tier], fontWeight:600}}>{TIER_LABELS[tier]}</span>
+                        </div>
                       </div>
+                      <span className="font-mono font-semibold text-[0.82rem] flex-shrink-0"
+                        style={{color: isSelected ? 'var(--accent2)' : 'var(--tx)'}}>
+                        {fmt(it.price)}
+                      </span>
+                      {isSelected && <span style={{color:'var(--accent2)', fontSize:13}}>✓</span>}
                     </div>
-                    <span className="font-mono font-semibold text-[0.82rem] flex-shrink-0"
-                      style={{color: isSelected ? 'var(--accent2)' : 'var(--tx)'}}>
-                      {fmt(it.price)}
-                    </span>
-                    {isSelected && <span style={{color:'var(--accent2)', fontSize:13}}>✓</span>}
+                    {tip && (
+                      <div className="px-3 pb-2.5 pt-0 pl-[26px]">
+                        <div className="text-[0.68rem] leading-relaxed" style={{color:'var(--tx3)'}}>
+                          💡 {tip}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )
               })}
