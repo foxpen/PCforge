@@ -7,165 +7,168 @@ export default function Configurator({ sel, selShop, total, count, compareList, 
   const [activeFilters, setActiveFilters] = useState({})
   const [configOpen, setConfigOpen]   = useState(true)
 
+  const pct = Math.round(count / 8 * 100)
+
   return (
-    <main className="main">
-      {/* KONFIGURÁTOR vlevo */}
-      <div className="config-col">
-        <div className="collapse-header" onClick={() => setConfigOpen(o => !o)}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div className="sec-label" style={{ marginBottom:0 }}>
+    <div className="relative z-10 grid gap-[clamp(0.85rem,1.5vw,1.75rem)] px-[clamp(1.5rem,5vw,6rem)] pb-[clamp(4rem,8vh,8rem)] items-start"
+      style={{gridTemplateColumns:'1fr clamp(300px,26vw,460px)'}}>
+
+      {/* Konfigurátor */}
+      <div className="flex flex-col gap-3">
+        {/* Hlavička s progress barem */}
+        <div className="cursor-pointer select-none" onClick={() => setConfigOpen(o => !o)}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[0.68rem] font-bold uppercase tracking-widest" style={{color:'var(--tx2)'}}>
               ⚙️ Konfigurátor{' '}
-              <span style={{ fontFamily:'JetBrains Mono,monospace', color:'var(--text-3)', fontWeight:400 }}>
-                {count} / 8
-              </span>
-            </div>
-            <span className={`collapse-arrow${!configOpen ? ' closed' : ''}`}>▲</span>
+              <span className="font-mono font-normal" style={{color:'var(--tx3)'}}>{count} / 8</span>
+            </span>
+            <span className={`text-[0.65rem] transition-transform ${configOpen ? '' : 'rotate-180'}`} style={{color:'var(--tx3)'}}>▲</span>
+          </div>
+          <div className="h-1 rounded-full overflow-hidden" style={{background:'var(--glass-b)'}}>
+            <div className="h-full rounded-full transition-all duration-500" style={{width:`${pct}%`, background:'var(--accent)'}} />
           </div>
         </div>
 
-        {configOpen && (
-          <>
-            <div className="prog-bar" style={{ margin:'0.75rem 0 1.25rem' }}>
-              <div className="prog-fill" style={{ width: (count / 8 * 100) + '%' }} />
-            </div>
+        {configOpen && Object.entries(cats).map(([k, cat]) => {
+          const selected = sel[k] ? cat.items.find(x => x.id === sel[k]) : null
+          const isOpen   = openCat === k
+          const filter   = activeFilters[k] || 'Vše'
+          const filtered = filter === 'Vše' ? cat.items : cat.items.filter(it => it[cat.filterKey] === filter)
 
-            <div className="cats">
-              {Object.entries(cats).map(([k, cat]) => {
-                const selected = sel[k] ? cat.items.find(x => x.id === sel[k]) : null
-                const isOpen   = openCat === k
-                const filter   = activeFilters[k] || 'Vše'
-                const filtered = filter === 'Vše' ? cat.items : cat.items.filter(it => it[cat.filterKey] === filter)
+          return (
+            <div key={k} className="glass rounded-2xl overflow-hidden transition-all duration-300"
+              style={{borderColor: selected ? 'var(--accent-b)' : 'var(--glass-b)'}}>
 
-                return (
-                  <div key={k} className={`cat-card${selected ? ' done' : ''}${isOpen ? ' open' : ''}`}>
-                    {/* Hlavička kategorie */}
-                    <div className="cat-head" onClick={() => setOpenCat(isOpen ? null : k)}>
-                      <div className="cat-ico">{cat.icon}</div>
-                      <div className="cat-txt">
-                        <div className="cat-n">{cat.name}</div>
-                        {selected
-                          ? <div className="cat-s">{selected.name}</div>
-                          : <div className="cat-s" style={{ color:'var(--text-3)' }}>Nevybráno</div>
-                        }
-                      </div>
-                      <div style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
-                        {selected && (
-                          <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:'0.82rem', fontWeight:600, color:'var(--accent)' }}>
-                            {fmt(selected.price)}
-                          </span>
-                        )}
-                        <span className="cat-chev">▼</span>
-                      </div>
-                    </div>
+              {/* Hlavička kategorie */}
+              <div className="flex items-center gap-[clamp(0.75rem,1.5vw,1.25rem)] px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.9rem,1.5vw,1.25rem)] cursor-pointer transition-colors hover:bg-white/[0.03] select-none"
+                onClick={() => setOpenCat(isOpen ? null : k)}>
+                <div className={`flex items-center justify-center rounded-xl flex-shrink-0 transition-colors`}
+                  style={{width:'clamp(36px,3vw,46px)', height:'clamp(36px,3vw,46px)', fontSize:'clamp(1rem,1.5vw,1.25rem)', background: selected ? 'var(--accent-s)' : 'rgba(255,255,255,0.07)'}}>
+                  {cat.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold" style={{fontSize:'clamp(0.85rem,1.2vw,0.97rem)', color:'var(--tx)'}}>{cat.name}</div>
+                  <div className="truncate mt-0.5" style={{fontSize:'clamp(0.7rem,1vw,0.8rem)', color: selected ? 'var(--tx2)' : 'var(--tx3)'}}>
+                    {selected ? selected.name : 'Nevybráno'}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  {selected && <span className="font-mono font-semibold" style={{fontSize:'clamp(0.82rem,1.2vw,0.92rem)', color:'var(--accent)'}}>{fmt(selected.price)}</span>}
+                  <span className={`text-[0.6rem] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} style={{color:'var(--tx3)'}}>▼</span>
+                </div>
+              </div>
 
-                    {/* Filtry */}
-                    {isOpen && (
-                      <div className="cat-filters">
-                        {cat.filters.map(f => (
-                          <button
-                            key={f}
-                            className={`cat-filter-btn${filter === f ? ' on' : ''}`}
-                            onClick={e => { e.stopPropagation(); setActiveFilters(prev => ({ ...prev, [k]: f })) }}
-                          >{f}</button>
-                        ))}
-                      </div>
-                    )}
+              {/* Filtry */}
+              {isOpen && cat.filters?.length > 0 && (
+                <div className="flex gap-1.5 flex-wrap px-[clamp(1rem,2vw,1.5rem)] py-2.5 border-t border-b" style={{borderColor:'var(--glass-b)', background:'rgba(255,255,255,0.02)'}}>
+                  {cat.filters.map(f => (
+                    <button key={f} onClick={() => setActiveFilters(p => ({...p,[k]:f}))}
+                      className="px-3 py-1 rounded-full text-[0.7rem] font-medium cursor-pointer transition-all border"
+                      style={{
+                        background: filter===f ? 'var(--accent-s)' : 'transparent',
+                        borderColor: filter===f ? 'var(--accent-b)' : 'var(--glass-b)',
+                        color: filter===f ? 'var(--accent)' : 'var(--tx2)',
+                      }}>
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-                    {/* Produkty */}
-                    <div className="items">
-                      {filtered.map(it => {
-                        const isSelected = sel[k] === it.id
-                        const isCmp      = compareList.some(c => c.id === it.id && c.cat === k)
-                        const score      = it.rating ? (it.rating / 10).toFixed(1) : null
-                        const scoreColor = !score ? '' : score >= 8.5 ? '#34d399' : score >= 7 ? '#fbbf24' : '#f87171'
+              {/* Produkty */}
+              {isOpen && (
+                <div className="border-t" style={{borderColor:'var(--glass-b)'}}>
+                  {filtered.map(it => {
+                    const isSelected = sel[k] === it.id
+                    const isCmp      = compareList.some(c => c.id === it.id && c.cat === k)
+                    return (
+                      <div key={it.id}>
+                        <div
+                          className="flex items-center flex-wrap gap-[clamp(0.75rem,1.5vw,1.25rem)] px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.75rem,1.5vw,1rem)] border-b last:border-b-0 cursor-pointer transition-colors"
+                          style={{borderColor:'rgba(255,255,255,0.04)', background: isSelected ? 'var(--accent-s)' : undefined}}
+                          onClick={() => onPick(k, it.id)}
+                          onMouseEnter={e => { if(!isSelected) e.currentTarget.style.background='rgba(255,255,255,0.03)' }}
+                          onMouseLeave={e => { if(!isSelected) e.currentTarget.style.background='' }}
+                        >
+                          {/* Checkbox */}
+                          <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all text-[0.7rem]"
+                            style={{border: isSelected ? 'none' : '1.5px solid var(--glass-b)', background: isSelected ? 'var(--accent)' : 'transparent', color: isSelected ? '#fff' : 'transparent'}}>
+                            {isSelected ? '✓' : ''}
+                          </div>
 
-                        return (
-                          <div key={it.id} className={`item${isSelected ? ' on' : ''}`} onClick={() => onPick(k, it.id)}>
-                            <div className={`item-chk`}>{isSelected ? '✓' : ''}</div>
-                            <div className="item-info">
-                              <div className="item-name">
-                                {it.top && <span className="top-badge">TOP</span>}
-                                {it.name}
-                                {score && (
-                                  <span style={{
-                                    marginLeft:'0.4rem', fontSize:'0.6rem', fontWeight:700,
-                                    color:scoreColor, fontFamily:'JetBrains Mono,monospace'
-                                  }}>{score}</span>
-                                )}
-                              </div>
-                              <div className="item-specs">{it.specs}</div>
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium" style={{fontSize:'clamp(0.82rem,1.1vw,0.92rem)', color:'var(--tx)'}}>
+                              {it.top && <span className="inline-block mr-1 text-[0.58rem] px-1.5 py-0.5 rounded font-semibold tracking-wide align-middle" style={{background:'rgba(251,191,36,0.15)', color:'var(--yellow)'}}>TOP</span>}
+                              {it.name}
                             </div>
-                            <div className="item-price">
-                              <div className="p">{fmt(it.price)}</div>
-                              {Object.keys(it.shops).length > 0 && (
-                                <div className="shops">
-                                  od {Math.min(...Object.values(it.shops)).toLocaleString('cs')} Kč
-                                </div>
-                              )}
-                            </div>
-                            <div style={{ display:'flex', gap:'0.25rem' }} onClick={e => e.stopPropagation()}>
-                              <button
-                                className={`cg-btn-cmp${isCmp ? ' on' : ''}`}
-                                onClick={() => onToggleCompare(k, it.id)}
-                                title="Porovnat"
-                              >⚖️</button>
-                              <button
-                                className="cg-btn-cmp"
-                                onClick={onHistoryOpen}
-                                title="Historie cen"
-                              >📈</button>
-                            </div>
+                            <div className="font-mono mt-0.5" style={{fontSize:'clamp(0.68rem,0.9vw,0.75rem)', color:'var(--tx2)'}}>{it.specs}</div>
+                          </div>
 
-                            {/* Shop picker — zobrazí se po výběru */}
-                            {isSelected && Object.keys(it.shops).length > 0 && (
-                              <div className="shop-picker" onClick={e => e.stopPropagation()}>
-                                {Object.entries(it.shops).map(([shop, price]) => {
-                                  const url = shopUrls[shop]
-                                    ? shopUrls[shop](it.name)
-                                    : `https://www.google.com/search?q=${encodeURIComponent(it.name + ' ' + shop)}`
-                                  const isActive = selShop[k] === shop
-                                  return (
-                                    <div
-                                      key={shop}
-                                      className={`shop-pick-row${isActive ? ' shop-pick-on' : ''}`}
-                                      onClick={() => onPickShop(k, shop)}
-                                    >
-                                      <div className="shop-pick-chk">{isActive ? '✓' : ''}</div>
-                                      <span className="shop-pick-name">{shop}</span>
-                                      <span className="shop-pick-price">{price.toLocaleString('cs')} Kč</span>
-                                      <a
-                                        href={url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="shop-pick-link"
-                                        onClick={e => e.stopPropagation()}
-                                      >↗</a>
-                                    </div>
-                                  )
-                                })}
-                              </div>
+                          {/* Cena */}
+                          <div className="text-right flex-shrink-0">
+                            <div className="font-mono font-semibold" style={{fontSize:'clamp(0.85rem,1.2vw,0.95rem)', color:'var(--tx)'}}>{fmt(it.price)}</div>
+                            {Object.keys(it.shops).length > 0 && (
+                              <div className="text-[0.65rem] mt-0.5" style={{color:'var(--tx2)'}}>od {Math.min(...Object.values(it.shops)).toLocaleString('cs')} Kč</div>
                             )}
                           </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
+
+                          {/* Akční tlačítka */}
+                          <div className="flex gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                            {[['⚖️', () => onToggleCompare(k, it.id), isCmp], ['📈', onHistoryOpen, false]].map(([ico, fn, active], i) => (
+                              <button key={i} onClick={fn}
+                                className="w-7 h-7 rounded-lg flex items-center justify-center text-[0.75rem] border-none cursor-pointer transition-all"
+                                style={{background: active ? 'var(--accent-s)' : 'rgba(255,255,255,0.05)', color: active ? 'var(--accent)' : 'var(--tx2)'}}>
+                                {ico}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Shop picker */}
+                        {isSelected && Object.keys(it.shops).length > 0 && (
+                          <div className="flex flex-col gap-1.5 border-t py-2"
+                            style={{borderColor:'var(--glass-b)', background:'rgba(255,255,255,0.02)', paddingLeft:'clamp(2.5rem,4vw,4rem)', paddingRight:'clamp(1rem,2vw,1.5rem)'}}
+                            onClick={e => e.stopPropagation()}>
+                            {Object.entries(it.shops).map(([shop, price]) => {
+                              const url = shopUrls[shop] ? shopUrls[shop](it.name) : `https://www.google.com/search?q=${encodeURIComponent(it.name+' '+shop)}`
+                              const isActive = selShop[k] === shop
+                              return (
+                                <div key={shop}
+                                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg cursor-pointer transition-all border"
+                                  style={{background: isActive ? 'var(--accent-s)' : 'transparent', borderColor: isActive ? 'var(--accent-b)' : 'transparent'}}
+                                  onClick={() => onPickShop(k, shop)}
+                                  onMouseEnter={e => { if(!isActive) e.currentTarget.style.background='rgba(255,255,255,0.05)' }}
+                                  onMouseLeave={e => { if(!isActive) e.currentTarget.style.background='transparent' }}>
+                                  <div className="w-4 h-4 rounded flex items-center justify-center text-[0.6rem] flex-shrink-0"
+                                    style={{border: isActive ? 'none' : '1.5px solid var(--glass-b)', background: isActive ? 'var(--accent)' : 'transparent', color: isActive ? '#fff' : 'transparent'}}>
+                                    {isActive ? '✓' : ''}
+                                  </div>
+                                  <span className="flex-1 text-[0.78rem] font-medium" style={{color:'var(--tx)'}}>{shop}</span>
+                                  <span className="font-mono text-[0.78rem]" style={{color: isActive ? 'var(--accent)' : 'var(--tx2)'}}>{price.toLocaleString('cs')} Kč</span>
+                                  <a href={url} target="_blank" rel="noopener noreferrer"
+                                    className="text-[0.72rem] px-2 py-0.5 rounded-md border transition-all hover:text-white flex-shrink-0"
+                                    style={{color:'var(--accent)', borderColor:'var(--accent-b)'}}
+                                    onMouseEnter={e => e.target.style.background='var(--accent)'}
+                                    onMouseLeave={e => e.target.style.background=''}
+                                    onClick={e => e.stopPropagation()}>↗</a>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
-          </>
-        )}
+          )
+        })}
       </div>
 
-      {/* SIDEBAR vpravo */}
-      <Sidebar
-        sel={sel}
-        selShop={selShop}
-        total={total}
-        count={count}
-        onRemove={onRemove}
-        onOpenAll={onOpenAll}
-      />
-    </main>
+      {/* Sidebar */}
+      <Sidebar sel={sel} selShop={selShop} total={total} count={count} onRemove={onRemove} onOpenAll={onOpenAll} />
+    </div>
   )
 }

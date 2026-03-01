@@ -6,69 +6,74 @@ export default function AchievementHud({ level, xpPct, count, unlocked, totalXp,
 
   return (
     <>
-      <div className="ach-hud" onClick={() => setOpen(o => !o)}>
-        <span className="ach-hud-icon">🏆</span>
-        <div className="ach-hud-info">
-          <div className="ach-hud-level">Level {level}</div>
-          <div className="ach-hud-xp-bar">
-            <div className="ach-hud-xp-fill" style={{ width: xpPct + '%' }} />
+      {/* HUD pill */}
+      <div onClick={() => setOpen(o => !o)}
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 glass rounded-2xl px-4 py-2.5 cursor-pointer transition-all hover:border-[color:var(--accent-b)]"
+        style={{borderColor:'var(--glass-b)'}}>
+        <span className="text-lg">🏆</span>
+        <div>
+          <div className="text-[0.7rem] font-bold" style={{color:'var(--tx)'}}>Level {level}</div>
+          <div className="h-[3px] rounded-full mt-1" style={{width:'80px', background:'rgba(255,255,255,0.1)'}}>
+            <div className="h-full rounded-full transition-all" style={{width:`${xpPct}%`, background:'var(--accent)'}} />
           </div>
         </div>
-        <span className="ach-hud-cnt">{count}</span>
+        <span className="font-mono text-[0.68rem] font-bold px-2 py-0.5 rounded-md" style={{background:'var(--accent-s)', color:'var(--accent)'}}>{count}</span>
       </div>
 
+      {/* Panel */}
       {open && (
-        <div className="ach-panel">
-          <div className="ach-panel-head">
+        <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-3 overflow-y-auto rounded-2xl p-5"
+          style={{width:'clamp(280px,22vw,340px)', maxHeight:'70vh', background:'rgba(13,13,26,0.96)', border:'1px solid var(--glass-b)', backdropFilter:'blur(30px)'}}>
+          <div className="flex justify-between items-start">
             <div>
-              <div className="ach-panel-title">🏆 Tvůj profil</div>
-              <div className="ach-panel-sub">Level {level} · {totalXp} XP celkem</div>
+              <div className="font-bold text-[0.9rem]" style={{color:'var(--tx)'}}>🏆 Tvůj profil</div>
+              <div className="text-[0.7rem] mt-0.5" style={{color:'var(--tx2)'}}>Level {level} · {totalXp} XP celkem</div>
             </div>
-          <button onClick={() => setOpen(false)} style={{ background:'none', border:'none', cursor:'pointer', fontSize:'1.2rem', color:'var(--text-2)' }}>✕</button>
+            <button onClick={() => setOpen(false)} className="bg-transparent border-none cursor-pointer text-xl" style={{color:'var(--tx2)'}}>✕</button>
           </div>
 
-          <div className="ach-level-bar-wrap">
-            <div className="ach-level-bar">
-              <div className="ach-level-fill" style={{ width: xpPct + '%' }} />
+          {/* XP bar */}
+          <div>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{background:'rgba(255,255,255,0.08)'}}>
+              <div className="h-full rounded-full transition-all" style={{width:`${xpPct}%`, background:'var(--accent)'}} />
             </div>
-            <div className="ach-level-labels">
-              <span>{xpPct} XP</span>
-              <span>100 XP do dalšího levelu</span>
+            <div className="flex justify-between text-[0.62rem] mt-1" style={{color:'var(--tx3)'}}>
+              <span>{xpPct} XP</span><span>100 XP do dalšího levelu</span>
             </div>
           </div>
 
-          <div className="ach-stats-row">
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-2">
             {[
-              { val: Object.keys(stats).filter(k => k !== 'buildStartTime' && stats[k] > 0).length, lbl: 'Akcí' },
-              { val: count, lbl: 'Achievementů' },
-              { val: totalXp, lbl: 'XP' },
+              {val: Object.keys(stats).filter(k => k!=='buildStartTime' && stats[k]>0).length, lbl:'Akcí'},
+              {val: count, lbl:'Achievements'},
+              {val: totalXp, lbl:'XP'},
             ].map(s => (
-              <div key={s.lbl} className="ach-stat">
-                <div className="ach-stat-val">{s.val}</div>
-                <div className="ach-stat-lbl">{s.lbl}</div>
+              <div key={s.lbl} className="rounded-xl p-2 text-center" style={{background:'rgba(255,255,255,0.04)'}}>
+                <div className="font-mono font-bold text-base" style={{color:'var(--accent)'}}>{s.val}</div>
+                <div className="text-[0.6rem] mt-0.5" style={{color:'var(--tx3)'}}>{s.lbl}</div>
               </div>
             ))}
           </div>
 
-          <div className="ach-list">
+          {/* Achievement list */}
+          <div className="flex flex-col gap-1.5">
             {achievements.map(a => (
-              <div key={a.id} className={`ach-item ${unlocked.has(a.id) ? 'done' : 'locked'}`}>
-                <span className="ach-item-icon">{a.icon}</span>
-                <div className="ach-item-info">
-                  <div className="ach-item-name">{a.name}</div>
-                  <div className="ach-item-desc">{a.story.substring(0, 80)}...</div>
+              <div key={a.id} className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all ${unlocked.has(a.id) ? '' : 'opacity-40 grayscale'}`}
+                style={{background: unlocked.has(a.id) ? 'rgba(129,140,248,0.08)' : 'transparent', borderColor: unlocked.has(a.id) ? 'rgba(129,140,248,0.2)' : 'transparent'}}>
+                <span className="text-xl flex-shrink-0">{a.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[0.78rem] font-semibold" style={{color:'var(--tx)'}}>{a.name}</div>
+                  <div className="text-[0.65rem] truncate mt-0.5" style={{color:'var(--tx2)'}}>{a.story.substring(0,80)}...</div>
                 </div>
-                <span className="ach-item-xp">+{a.xp} XP</span>
+                <span className="font-mono text-[0.65rem] font-bold flex-shrink-0" style={{color:'var(--accent)'}}>+{a.xp} XP</span>
               </div>
             ))}
           </div>
 
           {onReset && (
-            <button onClick={onReset} style={{
-              marginTop:'0.75rem', width:'100%', padding:'0.5rem',
-              background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.25)',
-              color:'#f87171', borderRadius:'10px', cursor:'pointer', fontSize:'0.72rem'
-            }}>
+            <button onClick={onReset} className="w-full py-2 rounded-xl text-[0.72rem] cursor-pointer border transition-all hover:bg-red-400/20"
+              style={{background:'rgba(248,113,113,0.1)', borderColor:'rgba(248,113,113,0.25)', color:'#f87171'}}>
               🗑️ Resetovat vše
             </button>
           )}
