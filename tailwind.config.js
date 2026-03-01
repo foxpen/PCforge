@@ -7,6 +7,7 @@ export default {
       colors: {
         accent:  '#818cf8',
         'accent-light': '#6366f1',
+        accent2: '#f59e0b',
         green:   '#34d399',
         yellow:  '#fbbf24',
       },
