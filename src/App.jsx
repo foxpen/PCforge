@@ -2,6 +2,8 @@ import { useCallback, useState, useEffect } from 'react'
 import { useLocalStorage } from './hooks/useLocalStorage.js'
 import { useBuild } from './hooks/useBuild.js'
 import Nav, { PALETTES, tv } from './components/Nav.jsx'
+import Onboarding from './components/Onboarding.jsx'
+import EZMode from './components/EZMode.jsx'
 import Hero from './components/Hero.jsx'
 import Tabs from './components/Tabs.jsx'
 import Configurator from './components/Configurator.jsx'
@@ -19,6 +21,7 @@ import Saved from './components/Saved.jsx'
 
 export default function App() {
   const [tab, setTab]               = useState('config')
+  const [appMode, setAppMode]       = useLocalStorage('pcforge_mode', null) // null=onboarding, 'ez', 'advanced'
   const [compareList, setCompareList] = useState([])
   const [achCurrent, setAchCurrent]   = useState(null)
   const [achQueue, setAchQueue]       = useState([])
@@ -152,6 +155,64 @@ export default function App() {
     checkAchievements(ns)
   }
 
+  // ═══ ONBOARDING ═══
+  if (!appMode) {
+    return <Onboarding onChoose={setAppMode} />
+  }
+
+  // ═══ EZ MODE ═══
+  if (appMode === 'ez') {
+    return (
+      <div className="min-h-screen">
+        <Nav
+          theme={theme}
+          onToggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+          total={build.total}
+          count={build.count}
+          sel={build.sel}
+          selShop={build.selShop}
+          onRemove={build.removePick}
+          onOpenAll={() => bump('openedAll')}
+          onSaveBuild={saveBuild}
+          onShare={() => { setShareOpen(true); bump('shared') }}
+          onExport={() => bump('exported')}
+          palette={paletteId}
+          onPalette={setPaletteId}
+        />
+        <EZMode
+          sel={build.sel}
+          selShop={build.selShop}
+          total={build.total}
+          count={build.count}
+          onPick={(k, id) => { build.pick(k, id); checkAchievements() }}
+          onRemove={build.removePick}
+          onSaveBuild={saveBuild}
+          onShare={() => { setShareOpen(true); bump('shared') }}
+          onSwitchMode={() => setAppMode('advanced')}
+          favorites={favorites}
+          onToggleFavorite={toggleFavorite}
+        />
+        <AchievementPopup achievement={achCurrent} onDismiss={dismissAch} />
+        {shareOpen && <ShareModal sel={build.sel} selShop={build.selShop} total={build.total} onClose={() => setShareOpen(false)} />}
+        <AchievementHud
+          level={Math.floor(totalXp / 100) + 1}
+          xpPct={totalXp % 100}
+          count={unlockedSet.size}
+          unlocked={unlockedSet}
+          totalXp={totalXp}
+          stats={stats}
+          onReset={() => {
+            if (!confirm('Resetovat vše?')) return
+            build.clearBuild(); setUnlockedArr([]); setTotalXp(0)
+            setStats({ shared:0, exported:0, historyOpened:0, canRunChecked:0, buildTime:0, openedAll:0, catalogVisited:0, presetLoaded:0, totalClicks:0 })
+          }}
+        />
+        <Footer />
+      </div>
+    )
+  }
+
+  // ═══ ADVANCED MODE ═══
   return (
     <div className="min-h-screen pt-16">
       <div className="orb orb-1" /><div className="orb orb-2" /><div className="orb orb-3" />
@@ -172,7 +233,8 @@ export default function App() {
         onPalette={setPaletteId}
       />
 
-      <Hero onStart={() => { setTab('config'); document.getElementById('tabs')?.scrollIntoView({ behavior:'smooth' }) }} />
+      <Hero onStart={() => { setTab('config'); document.getElementById('tabs')?.scrollIntoView({ behavior:'smooth' }) }}
+        onSwitchToEZ={() => setAppMode('ez')} />
 
       <Tabs
         active={tab}
