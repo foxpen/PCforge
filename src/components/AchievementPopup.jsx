@@ -13,7 +13,7 @@ export default function AchievementPopup({ achievement, onDismiss }) {
     setPKey(k => k+1)
     startConfetti()
     clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(onDismiss, 8000)
+    timerRef.current = setTimeout(onDismiss, 12000)
     return () => { clearTimeout(timerRef.current); stopConfetti() }
   }, [achievement])
 
