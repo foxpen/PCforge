@@ -14,6 +14,7 @@ import AchievementHud from './components/AchievementHud.jsx'
 import Footer from './components/Footer.jsx'
 import { achievements } from './data/achievements.js'
 import PriceHistoryModal from './components/PriceHistoryModal.jsx'
+import Saved from './components/Saved.jsx'
 
 export default function App() {
   const [tab, setTab]               = useState('config')
@@ -38,6 +39,8 @@ export default function App() {
     shared:0, exported:0, historyOpened:0, canRunChecked:0,
     buildTime:0, openedAll:0, catalogVisited:0, presetLoaded:0, totalClicks:0,
   })
+  const [savedBuilds, setSavedBuilds] = useLocalStorage('pcforge_saved', [])
+  const [favorites,   setFavorites]   = useLocalStorage('pcforge_favorites', [])
 
   const unlockedSet = new Set(unlockedArr)
   const build = useBuild()
@@ -79,7 +82,39 @@ export default function App() {
       return idx >= 0 ? prev.filter((_, i) => i !== idx) : [...prev, { cat: catKey, id }]
     })
 
-  const bump = (key) => {
+  const saveBuild = (name) => {
+    const newBuild = {
+      id: Date.now().toString(),
+      name,
+      sel: { ...build.sel },
+      selShop: { ...build.selShop },
+      total: build.total,
+      savedAt: Date.now(),
+    }
+    setSavedBuilds(prev => [newBuild, ...prev])
+  }
+
+  const loadSaved = (id, newName, renameOnly = false) => {
+    const b = savedBuilds.find(x => x.id === id)
+    if (!b) return
+    if (renameOnly) {
+      setSavedBuilds(prev => prev.map(x => x.id === id ? { ...x, name: newName } : x))
+      return
+    }
+    build.loadPreset({ s: b.sel })
+    setTab('config')
+  }
+
+  const deleteSaved = (id) => setSavedBuilds(prev => prev.filter(x => x.id !== id))
+
+  const toggleFavorite = (catKey, itemId) => {
+    setFavorites(prev => {
+      const exists = prev.some(f => f.catKey === catKey && f.id === itemId)
+      return exists ? prev.filter(f => !(f.catKey === catKey && f.id === itemId)) : [...prev, { catKey, id: itemId }]
+    })
+  }
+
+  const clearFavorite = (catKey, itemId) => setFavorites(prev => prev.filter(f => !(f.catKey === catKey && f.id === itemId)))
     const ns = { ...stats, [key]: (stats[key] || 0) + 1 }
     trackStat(key)
     checkAchievements(ns)
@@ -109,6 +144,7 @@ export default function App() {
           if (t === 'canrun')  bump('canRunChecked')
         }}
         compareCount={compareList.length}
+        savedCount={savedBuilds.length + favorites.length}
       />
 
       <div style={{ display: tab === 'config' ? '' : 'none' }}>
@@ -116,6 +152,7 @@ export default function App() {
           sel={build.sel} selShop={build.selShop}
           total={build.total} count={build.count}
           compareList={compareList}
+          favorites={favorites}
           onPick={(k, id) => { build.pick(k, id); checkAchievements() }}
           onPickShop={build.pickShop}
           onRemove={build.removePick}
@@ -123,6 +160,8 @@ export default function App() {
           onToggleCompare={toggleCompare}
           onHistoryOpen={() => { setHistoryOpen(true); bump('historyOpened') }}
           onOpenAll={() => bump('openedAll')}
+          onSaveBuild={saveBuild}
+          onToggleFavorite={toggleFavorite}
         />
         <Presets onLoad={p => { build.loadPreset(p); bump('presetLoaded') }} />
       </div>
@@ -143,6 +182,16 @@ export default function App() {
 
       <div style={{ display: tab === 'canrun' ? '' : 'none' }}>
         <CanIRunIt sel={build.sel} />
+      </div>
+
+      <div style={{ display: tab === 'saved' ? '' : 'none' }}>
+        <Saved
+          savedBuilds={savedBuilds}
+          favorites={favorites}
+          onLoadBuild={loadSaved}
+          onDeleteBuild={deleteSaved}
+          onClearFavorite={clearFavorite}
+        />
       </div>
 
       <AchievementPopup achievement={achCurrent} onDismiss={dismissAch} />
