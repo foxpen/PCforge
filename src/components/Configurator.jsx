@@ -60,7 +60,7 @@ export default function Configurator({ sel, selShop, total, count, compareList, 
 
               {/* Filtry */}
               {isOpen && cat.filters?.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap px-[clamp(1rem,2vw,1.5rem)] py-2.5 border-t border-b" style={{borderColor:'var(--glass-b)', background:'var(--surface-2)'}}>
+                <div className="flex gap-1.5 flex-wrap px-[clamp(1rem,2vw,1.5rem)] py-2.5 border-t border-b" style={{borderColor:'var(--glass-b)', background:'var(--panel)'}}>
                   {cat.filters.map(f => (
                     <button key={f} onClick={() => setActiveFilters(p => ({...p,[k]:f}))}
                       className="px-3 py-1 rounded-full text-[0.7rem] font-medium cursor-pointer transition-all border"
@@ -128,7 +128,7 @@ export default function Configurator({ sel, selShop, total, count, compareList, 
                         {/* Shop picker */}
                         {isSelected && Object.keys(it.shops).length > 0 && (
                           <div className="flex flex-col gap-1.5 border-t py-2"
-                            style={{borderColor:'var(--glass-b)', background:'var(--surface-2)', paddingLeft:'clamp(2.5rem,4vw,4rem)', paddingRight:'clamp(1rem,2vw,1.5rem)'}}
+                            style={{borderColor:'var(--glass-b)', background:'var(--panel)', paddingLeft:'clamp(2.5rem,4vw,4rem)', paddingRight:'clamp(1rem,2vw,1.5rem)'}}
                             onClick={e => e.stopPropagation()}>
                             {Object.entries(it.shops).map(([shop, price]) => {
                               const url = shopUrls[shop] ? shopUrls[shop](it.name) : `https://www.google.com/search?q=${encodeURIComponent(it.name+' '+shop)}`

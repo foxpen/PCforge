@@ -51,7 +51,7 @@ export default function Sidebar({ sel, selShop, total, count, onRemove, onOpenAl
                 const url   = shop && it && shopUrls[shop] ? shopUrls[shop](it.name) : null
                 const isFav = favorites?.some(f => f.catKey === k && f.id === sel[k])
                 return (
-                  <div key={k} className="flex items-center gap-2.5 px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.35rem,0.8vw,0.6rem)] border-b last:border-b-0 transition-colors hover:bg-[var(--hover)]"
+                  <div key={k} className="flex items-center gap-2.5 px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.35rem,0.8vw,0.6rem)] border-b last:border-b-0 transition-colors hover:bg-[var(--panel-h)]"
                     style={{borderColor:'var(--border-subtle)'}}>
                     <span className="text-[0.9rem] flex-shrink-0">{cat.icon}</span>
                     <div className="flex-1 min-w-0">
