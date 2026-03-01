@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { useLocalStorage } from './hooks/useLocalStorage.js'
 import { useBuild } from './hooks/useBuild.js'
 import Nav, { PALETTES } from './components/Nav.jsx'
@@ -14,6 +14,7 @@ import AchievementHud from './components/AchievementHud.jsx'
 import Footer from './components/Footer.jsx'
 import { achievements } from './data/achievements.js'
 import PriceHistoryModal from './components/PriceHistoryModal.jsx'
+import ShareModal from './components/ShareModal.jsx'
 import Saved from './components/Saved.jsx'
 
 export default function App() {
@@ -22,6 +23,27 @@ export default function App() {
   const [achCurrent, setAchCurrent]   = useState(null)
   const [achQueue, setAchQueue]       = useState([])
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [shareOpen,   setShareOpen]   = useState(false)
+
+  // Načti sestavu z URL parametru při prvním načtení
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const buildParam = params.get('build')
+    if (!buildParam) return
+    try {
+      const { sel: s, selShop: ss } = JSON.parse(atob(buildParam))
+      build.loadPreset({ s })
+      // selShop načteme přímo
+      if (ss && Object.keys(ss).length) {
+        Object.entries(ss).forEach(([k, shop]) => build.pickShop(k, shop))
+      }
+      // Vymaž parametr z URL bez reload
+      window.history.replaceState({}, '', window.location.pathname)
+      setTab('config')
+    } catch (e) {
+      console.warn('Neplatný build parametr v URL')
+    }
+  }, [])
 
   // Vše persistováno v localStorage
   const [theme, setTheme]         = useLocalStorage('pcforge_theme', 'dark')
@@ -128,7 +150,7 @@ export default function App() {
         theme={theme}
         onToggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
         total={build.total}
-        onShare={() => bump('shared')}
+        onShare={() => { setShareOpen(true); bump('shared') }}}
         onExport={() => bump('exported')}
         palette={paletteId}
         onPalette={setPaletteId}
@@ -197,6 +219,7 @@ export default function App() {
       <AchievementPopup achievement={achCurrent} onDismiss={dismissAch} />
 
       {historyOpen && <PriceHistoryModal onClose={() => setHistoryOpen(false)} />}
+      {shareOpen   && <ShareModal sel={build.sel} selShop={build.selShop} total={build.total} onClose={() => setShareOpen(false)} />}
 
       <AchievementHud
         level={Math.floor(totalXp / 100) + 1}
