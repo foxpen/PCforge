@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from 'react'
 import { useLocalStorage } from './hooks/useLocalStorage.js'
 import { useBuild } from './hooks/useBuild.js'
-import Nav, { PALETTES } from './components/Nav.jsx'
+import Nav, { PALETTES, tv } from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
 import Tabs from './components/Tabs.jsx'
 import Configurator from './components/Configurator.jsx'
@@ -54,12 +54,15 @@ export default function App() {
   document.documentElement.style.setProperty('--accent', pal.accent)
   document.documentElement.style.setProperty('--accent-s', pal.soft)
   document.documentElement.style.setProperty('--accent-b', pal.border)
-  document.documentElement.style.setProperty('--accent2', pal.accent2)
-  document.documentElement.style.setProperty('--accent2-s', pal.accent2s)
-  document.documentElement.style.setProperty('--accent2-b', pal.accent2b)
-  document.documentElement.style.setProperty('--accent2-glow', pal.accent2glow)
-  document.documentElement.style.setProperty('--sidebar-bg', pal.sidebarBg)
-  document.documentElement.style.setProperty('--sidebar-line', pal.sidebarLine)
+  document.documentElement.style.setProperty('--accent2', tv(pal.accent2, theme))
+  document.documentElement.style.setProperty('--accent2-s', tv(pal.accent2s, theme))
+  document.documentElement.style.setProperty('--accent2-b', tv(pal.accent2b, theme))
+  document.documentElement.style.setProperty('--accent2-glow', tv(pal.accent2glow, theme))
+  document.documentElement.style.setProperty('--accent2-dark', tv(pal.accent2dark, theme))
+  document.documentElement.style.setProperty('--sidebar-bg', tv(pal.sidebarBg, theme))
+  document.documentElement.style.setProperty('--sidebar-line', tv(pal.sidebarLine, theme))
+  document.documentElement.style.setProperty('--sidebar-item-hover', tv(pal.sidebarItemH, theme))
+  document.documentElement.style.setProperty('--sidebar-cta-tx', tv(pal.sidebarCtaTx, theme))
   document.documentElement.setAttribute('data-theme', theme)
   const [unlockedArr, setUnlockedArr] = useLocalStorage('pcforge_unlocked', [])
   const [totalXp, setTotalXp]     = useLocalStorage('pcforge_xp', 0)
@@ -157,6 +160,12 @@ export default function App() {
         theme={theme}
         onToggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
         total={build.total}
+        count={build.count}
+        sel={build.sel}
+        selShop={build.selShop}
+        onRemove={build.removePick}
+        onOpenAll={() => bump('openedAll')}
+        onSaveBuild={saveBuild}
         onShare={() => { setShareOpen(true); bump('shared') }}
         onExport={() => bump('exported')}
         palette={paletteId}
