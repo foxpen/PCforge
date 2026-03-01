@@ -137,6 +137,7 @@ export default function App() {
   }
 
   const clearFavorite = (catKey, itemId) => setFavorites(prev => prev.filter(f => !(f.catKey === catKey && f.id === itemId)))
+  const bump = (key) => {
     const ns = { ...stats, [key]: (stats[key] || 0) + 1 }
     trackStat(key)
     checkAchievements(ns)
