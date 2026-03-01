@@ -2,10 +2,18 @@ import { useState } from 'react'
 import { fmt } from '../data/cats.js'
 
 const PALETTES = [
-  { id:'indigo', label:'Indigo', accent:'#818cf8', soft:'rgba(129,140,248,0.15)', border:'rgba(129,140,248,0.35)' },
-  { id:'violet', label:'Violet', accent:'#a78bfa', soft:'rgba(167,139,250,0.15)', border:'rgba(167,139,250,0.35)' },
-  { id:'cyan',   label:'Cyan',   accent:'#22d3ee', soft:'rgba(34,211,238,0.15)',  border:'rgba(34,211,238,0.35)'  },
-  { id:'rose',   label:'Rose',   accent:'#fb7185', soft:'rgba(251,113,133,0.15)', border:'rgba(251,113,133,0.35)' },
+  { id:'indigo', label:'Indigo', accent:'#818cf8', soft:'rgba(129,140,248,0.15)', border:'rgba(129,140,248,0.35)',
+    accent2:'#f59e0b', accent2s:'rgba(245,158,11,0.12)', accent2b:'rgba(245,158,11,0.28)', accent2glow:'rgba(245,158,11,0.15)',
+    sidebarBg:'linear-gradient(165deg, rgba(245,158,11,0.06) 0%, rgba(15,12,28,0.97) 40%)', sidebarLine:'linear-gradient(90deg, transparent, #f59e0b, transparent)' },
+  { id:'violet', label:'Violet', accent:'#a78bfa', soft:'rgba(167,139,250,0.15)', border:'rgba(167,139,250,0.35)',
+    accent2:'#f59e0b', accent2s:'rgba(245,158,11,0.12)', accent2b:'rgba(245,158,11,0.28)', accent2glow:'rgba(245,158,11,0.15)',
+    sidebarBg:'linear-gradient(165deg, rgba(245,158,11,0.06) 0%, rgba(15,12,28,0.97) 40%)', sidebarLine:'linear-gradient(90deg, transparent, #f59e0b, transparent)' },
+  { id:'cyan',   label:'Cyan',   accent:'#22d3ee', soft:'rgba(34,211,238,0.15)',  border:'rgba(34,211,238,0.35)',
+    accent2:'#34d399', accent2s:'rgba(52,211,153,0.12)', accent2b:'rgba(52,211,153,0.28)', accent2glow:'rgba(52,211,153,0.15)',
+    sidebarBg:'linear-gradient(165deg, rgba(52,211,153,0.06) 0%, rgba(15,12,28,0.97) 40%)', sidebarLine:'linear-gradient(90deg, transparent, #34d399, transparent)' },
+  { id:'rose',   label:'Rose',   accent:'#fb7185', soft:'rgba(251,113,133,0.15)', border:'rgba(251,113,133,0.35)',
+    accent2:'#fbbf24', accent2s:'rgba(251,191,36,0.12)', accent2b:'rgba(251,191,36,0.28)', accent2glow:'rgba(251,191,36,0.15)',
+    sidebarBg:'linear-gradient(165deg, rgba(251,191,36,0.06) 0%, rgba(15,12,28,0.97) 40%)', sidebarLine:'linear-gradient(90deg, transparent, #fbbf24, transparent)' },
 ]
 
 export default function Nav({ theme, onToggleTheme, total, onShare, onExport, palette, onPalette }) {
@@ -51,7 +59,7 @@ export default function Nav({ theme, onToggleTheme, total, onShare, onExport, pa
         {total > 0 && (
           <div className="flex items-center gap-2 px-4 h-10 rounded-xl glass text-sm">
             <span style={{color:'var(--tx2)',fontSize:'0.78rem'}}>Sestava</span>
-            <span className="font-mono font-bold" style={{color:'var(--accent)'}}>{fmt(total)}</span>
+            <span className="font-mono font-bold" style={{color:'var(--accent2)'}}>{fmt(total)}</span>
           </div>
         )}
       </div>

@@ -109,7 +109,7 @@ export default function Configurator({ sel, selShop, total, count, compareList, 
                           <div className="text-right flex-shrink-0">
                             <div className="font-mono font-semibold" style={{fontSize:'clamp(0.85rem,1.2vw,0.95rem)', color:'var(--tx)'}}>{fmt(it.price)}</div>
                             {Object.keys(it.shops).length > 0 && (
-                              <div className="text-[0.65rem] mt-0.5" style={{color:'var(--tx2)'}}>od {Math.min(...Object.values(it.shops)).toLocaleString('cs')} Kč</div>
+                              <div className="text-[0.65rem] mt-0.5 font-mono" style={{color:'var(--accent2)'}}>od {Math.min(...Object.values(it.shops)).toLocaleString('cs')} Kč</div>
                             )}
                           </div>
 
