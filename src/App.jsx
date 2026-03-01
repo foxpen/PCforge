@@ -76,7 +76,7 @@ export default function App() {
   }
 
   return (
-    <div className="app" data-theme={theme}>
+    <div className="min-h-screen pt-16" data-theme={theme}>
       <div className="orb orb-1" /><div className="orb orb-2" /><div className="orb orb-3" />
 
       <Nav
