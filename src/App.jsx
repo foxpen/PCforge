@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useLocalStorage } from './hooks/useLocalStorage.js'
 import { useBuild } from './hooks/useBuild.js'
-import Nav from './components/Nav.jsx'
+import Nav, { PALETTES } from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
 import Tabs from './components/Tabs.jsx'
 import Configurator from './components/Configurator.jsx'
@@ -24,6 +24,14 @@ export default function App() {
 
   // Vše persistováno v localStorage
   const [theme, setTheme]         = useLocalStorage('pcforge_theme', 'dark')
+  const [paletteId, setPaletteId] = useLocalStorage('pcforge_palette', 'indigo')
+
+  // Aplikuj paletu jako CSS proměnné na root
+  const pal = PALETTES.find(p => p.id === paletteId) || PALETTES[0]
+  document.documentElement.style.setProperty('--accent', pal.accent)
+  document.documentElement.style.setProperty('--accent-s', pal.soft)
+  document.documentElement.style.setProperty('--accent-b', pal.border)
+  document.documentElement.setAttribute('data-theme', theme)
   const [unlockedArr, setUnlockedArr] = useLocalStorage('pcforge_unlocked', [])
   const [totalXp, setTotalXp]     = useLocalStorage('pcforge_xp', 0)
   const [stats, setStats]         = useLocalStorage('pcforge_stats', {
@@ -78,7 +86,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen pt-16" data-theme={theme}>
+    <div className="min-h-screen pt-16">
       <div className="orb orb-1" /><div className="orb orb-2" /><div className="orb orb-3" />
 
       <Nav
@@ -87,6 +95,8 @@ export default function App() {
         total={build.total}
         onShare={() => bump('shared')}
         onExport={() => bump('exported')}
+        palette={paletteId}
+        onPalette={setPaletteId}
       />
 
       <Hero onStart={() => { setTab('config'); document.getElementById('tabs')?.scrollIntoView({ behavior:'smooth' }) }} />
