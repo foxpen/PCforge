@@ -29,7 +29,7 @@ export default function Compare({ compareList, onRemove }) {
               style={{padding:'clamp(1rem,2vw,1.5rem)', borderColor:'var(--glass-b)'}}>
               <button onClick={() => onRemove(it._cat, it.id)}
                 className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-[0.72rem] cursor-pointer border-none transition-all hover:bg-red-400/20 hover:text-red-400"
-                style={{background:'rgba(255,255,255,0.08)', color:'var(--tx3)'}}>✕</button>
+                style={{background:'var(--close-btn)', color:'var(--tx3)'}}>✕</button>
               <div className="text-[0.62rem] uppercase tracking-wider mb-1" style={{color:'var(--tx3)'}}>{it._catIcon} {it._catName}</div>
               <div className="font-bold text-[0.92rem] mb-1 pr-6" style={{color:'var(--tx)'}}>{it.name}</div>
               <div className="text-[0.72rem] mb-2" style={{color:'var(--tx2)'}}>{it.specs}</div>

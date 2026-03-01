@@ -43,7 +43,7 @@ export default function Configurator({ sel, selShop, total, count, compareList, 
               <div className="flex items-center gap-[clamp(0.75rem,1.5vw,1.25rem)] px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.9rem,1.5vw,1.25rem)] cursor-pointer transition-colors hover:bg-white/[0.03] select-none"
                 onClick={() => setOpenCat(isOpen ? null : k)}>
                 <div className={`flex items-center justify-center rounded-xl flex-shrink-0 transition-colors`}
-                  style={{width:'clamp(36px,3vw,46px)', height:'clamp(36px,3vw,46px)', fontSize:'clamp(1rem,1.5vw,1.25rem)', background: selected ? 'var(--accent-s)' : 'rgba(255,255,255,0.07)'}}>
+                  style={{width:'clamp(36px,3vw,46px)', height:'clamp(36px,3vw,46px)', fontSize:'clamp(1rem,1.5vw,1.25rem)', background: selected ? 'var(--accent-s)' : 'var(--surface-3)'}}>
                   {cat.icon}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -60,7 +60,7 @@ export default function Configurator({ sel, selShop, total, count, compareList, 
 
               {/* Filtry */}
               {isOpen && cat.filters?.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap px-[clamp(1rem,2vw,1.5rem)] py-2.5 border-t border-b" style={{borderColor:'var(--glass-b)', background:'rgba(255,255,255,0.02)'}}>
+                <div className="flex gap-1.5 flex-wrap px-[clamp(1rem,2vw,1.5rem)] py-2.5 border-t border-b" style={{borderColor:'var(--glass-b)', background:'var(--surface-2)'}}>
                   {cat.filters.map(f => (
                     <button key={f} onClick={() => setActiveFilters(p => ({...p,[k]:f}))}
                       className="px-3 py-1 rounded-full text-[0.7rem] font-medium cursor-pointer transition-all border"
@@ -85,9 +85,9 @@ export default function Configurator({ sel, selShop, total, count, compareList, 
                       <div key={it.id}>
                         <div
                           className="flex items-center flex-wrap gap-[clamp(0.75rem,1.5vw,1.25rem)] px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.75rem,1.5vw,1rem)] border-b last:border-b-0 cursor-pointer transition-colors"
-                          style={{borderColor:'rgba(255,255,255,0.04)', background: isSelected ? 'var(--accent-s)' : undefined}}
+                          style={{borderColor:'var(--surface-2)', background: isSelected ? 'var(--accent-s)' : undefined}}
                           onClick={() => onPick(k, it.id)}
-                          onMouseEnter={e => { if(!isSelected) e.currentTarget.style.background='rgba(255,255,255,0.03)' }}
+                          onMouseEnter={e => { if(!isSelected) e.currentTarget.style.background='var(--surface-2)' }}
                           onMouseLeave={e => { if(!isSelected) e.currentTarget.style.background='' }}
                         >
                           {/* Checkbox */}
@@ -118,7 +118,7 @@ export default function Configurator({ sel, selShop, total, count, compareList, 
                             {[['⚖️', () => onToggleCompare(k, it.id), isCmp], ['📈', onHistoryOpen, false]].map(([ico, fn, active], i) => (
                               <button key={i} onClick={fn}
                                 className="w-7 h-7 rounded-lg flex items-center justify-center text-[0.75rem] border-none cursor-pointer transition-all"
-                                style={{background: active ? 'var(--accent-s)' : 'rgba(255,255,255,0.05)', color: active ? 'var(--accent)' : 'var(--tx2)'}}>
+                                style={{background: active ? 'var(--accent-s)' : 'var(--hover)', color: active ? 'var(--accent)' : 'var(--tx2)'}}>
                                 {ico}
                               </button>
                             ))}
@@ -128,7 +128,7 @@ export default function Configurator({ sel, selShop, total, count, compareList, 
                         {/* Shop picker */}
                         {isSelected && Object.keys(it.shops).length > 0 && (
                           <div className="flex flex-col gap-1.5 border-t py-2"
-                            style={{borderColor:'var(--glass-b)', background:'rgba(255,255,255,0.02)', paddingLeft:'clamp(2.5rem,4vw,4rem)', paddingRight:'clamp(1rem,2vw,1.5rem)'}}
+                            style={{borderColor:'var(--glass-b)', background:'var(--surface-2)', paddingLeft:'clamp(2.5rem,4vw,4rem)', paddingRight:'clamp(1rem,2vw,1.5rem)'}}
                             onClick={e => e.stopPropagation()}>
                             {Object.entries(it.shops).map(([shop, price]) => {
                               const url = shopUrls[shop] ? shopUrls[shop](it.name) : `https://www.google.com/search?q=${encodeURIComponent(it.name+' '+shop)}`
@@ -138,7 +138,7 @@ export default function Configurator({ sel, selShop, total, count, compareList, 
                                   className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg cursor-pointer transition-all border"
                                   style={{background: isActive ? 'var(--accent-s)' : 'transparent', borderColor: isActive ? 'var(--accent-b)' : 'transparent'}}
                                   onClick={() => onPickShop(k, shop)}
-                                  onMouseEnter={e => { if(!isActive) e.currentTarget.style.background='rgba(255,255,255,0.05)' }}
+                                  onMouseEnter={e => { if(!isActive) e.currentTarget.style.background='var(--hover)' }}
                                   onMouseLeave={e => { if(!isActive) e.currentTarget.style.background='transparent' }}>
                                   <div className="w-4 h-4 rounded flex items-center justify-center text-[0.6rem] flex-shrink-0"
                                     style={{border: isActive ? 'none' : '1.5px solid var(--glass-b)', background: isActive ? 'var(--accent)' : 'transparent', color: isActive ? '#fff' : 'transparent'}}>

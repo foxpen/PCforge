@@ -142,7 +142,7 @@ function Card({ it, sel, compareList, onAdd, onCompare, onHistory }) {
         {Object.entries(it.shops).slice(0,3).map(([shop, price]) => {
           const url = shopUrls[shop] ? shopUrls[shop](it.name) : `https://www.google.com/search?q=${encodeURIComponent(it.name+' '+shop)}`
           return (
-            <div key={shop} className="flex items-center justify-between text-[0.68rem] py-1 border-b" style={{color:'var(--tx2)', borderColor:'rgba(255,255,255,0.04)'}}>
+            <div key={shop} className="flex items-center justify-between text-[0.68rem] py-1 border-b" style={{color:'var(--tx2)', borderColor:'var(--surface-2)'}}>
               <span>{shop}</span>
               <span className="font-mono font-semibold">{price.toLocaleString('cs')} Kč</span>
               <a href={url} target="_blank" rel="noopener noreferrer" className="ml-1" style={{color:'var(--accent)', fontSize:'0.65rem'}}>↗</a>
@@ -159,7 +159,7 @@ function Card({ it, sel, compareList, onAdd, onCompare, onHistory }) {
         {[[() => onCompare(it._catKey, it.id), '⚖️', isCmp], [onHistory, '📈', false]].map(([fn, ico, active], i) => (
           <button key={i} onClick={fn}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-[0.78rem] border-none cursor-pointer transition-all"
-            style={{background: active ? 'var(--accent-s)' : 'rgba(255,255,255,0.05)', color: active ? 'var(--accent)' : 'var(--tx2)'}}>
+            style={{background: active ? 'var(--accent-s)' : 'var(--hover)', color: active ? 'var(--accent)' : 'var(--tx2)'}}>
             {ico}
           </button>
         ))}
@@ -194,7 +194,7 @@ function Row({ it, sel, compareList, onAdd, onCompare }) {
         </button>
         <button onClick={() => onCompare(it._catKey, it.id)}
           className="px-2 py-1.5 rounded-lg text-[0.72rem] border-none cursor-pointer transition-all"
-          style={{background: isCmp ? 'var(--accent-s)' : 'rgba(255,255,255,0.05)', color: isCmp ? 'var(--accent)' : 'var(--tx2)'}}>⚖️</button>
+          style={{background: isCmp ? 'var(--accent-s)' : 'var(--hover)', color: isCmp ? 'var(--accent)' : 'var(--tx2)'}}>⚖️</button>
       </div>
     </div>
   )

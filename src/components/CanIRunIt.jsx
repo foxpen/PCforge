@@ -17,7 +17,7 @@ export default function CanIRunIt({ sel }) {
   const filtered = search ? games.filter(g => g.name.toLowerCase().includes(search.toLowerCase())) : games
 
   const getResult = (g) => {
-    if (!cpu && !gpu) return { cls:'unknown', bg:'rgba(255,255,255,0.04)', brd:'var(--glass-b)', ico:'❓', txt:'Sestav PC nejdřív', sub:'Vyber CPU a GPU v Konfigurátoru' }
+    if (!cpu && !gpu) return { cls:'unknown', bg:'var(--surface-2)', brd:'var(--glass-b)', ico:'❓', txt:'Sestav PC nejdřív', sub:'Vyber CPU a GPU v Konfigurátoru' }
     const ok = t => myCpu >= t.cpuScore && myGpu >= t.gpuScore && myRam >= t.ram && myVram >= t.vram
     if (ok(g.ultra)) return { cls:'yes',  bg:'rgba(52,211,153,0.1)',  brd:'rgba(52,211,153,0.25)',  ico:'🚀', txt:'Ultra nastavení bez problémů!', sub:'Tvoje sestava hru drtí na nejvyšší detaily' }
     if (ok(g.rec))   return { cls:'yes',  bg:'rgba(52,211,153,0.1)',  brd:'rgba(52,211,153,0.25)',  ico:'✅', txt:'Rozjedeš na doporučených nastaveních', sub:'Plynulý gameplay na High/Ultra' }
@@ -49,7 +49,7 @@ export default function CanIRunIt({ sel }) {
                 <div className="text-[0.7rem] mb-3" style={{color:'var(--tx2)'}}>{g.genre}</div>
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   {[['⚡ Minimum', g.min], ['⭐ Doporučeno', g.rec]].map(([label, tier]) => (
-                    <div key={label} className="rounded-xl p-2.5" style={{background:'rgba(255,255,255,0.03)'}}>
+                    <div key={label} className="rounded-xl p-2.5" style={{background:'var(--surface-2)'}}>
                       <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{color:'var(--tx3)'}}>{label}</div>
                       {[['CPU', tier.cpuScore+' skóre'], ['GPU', tier.gpuScore+' skóre'], ['RAM', tier.ram+' GB'], ['VRAM', tier.vram+' GB']].map(([k,v]) => (
                         <div key={k} className="flex justify-between text-[0.68rem] py-0.5" style={{color:'var(--tx2)'}}>

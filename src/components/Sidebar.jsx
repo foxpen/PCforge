@@ -49,7 +49,7 @@ export default function Sidebar({ sel, selShop, total, count, onRemove, onOpenAl
                 const url   = shop && it && shopUrls[shop] ? shopUrls[shop](it.name) : null
                 return (
                   <div key={k} className="flex items-center gap-2.5 px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.35rem,0.8vw,0.6rem)] border-b last:border-b-0 transition-colors hover:bg-white/[0.02]"
-                    style={{borderColor:'rgba(255,255,255,0.04)'}}>
+                    style={{borderColor:'var(--surface-2)'}}>
                     <span className="text-[0.9rem] flex-shrink-0">{cat.icon}</span>
                     <div className="flex-1 min-w-0">
                       <div className="text-[0.6rem] uppercase tracking-wider" style={{color:'var(--tx3)'}}>{cat.name.split('(')[0].trim()}</div>
