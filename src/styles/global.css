@@ -6,18 +6,33 @@
 :root {
   --bg-from: #0d0d1a; --bg-to: #111128;
   --orb1: rgba(99,102,241,0.35); --orb2: rgba(168,85,247,0.25); --orb3: rgba(59,130,246,0.2);
-  --glass: rgba(255,255,255,0.06); --glass-b: rgba(255,255,255,0.12); --glass-h: rgba(255,255,255,0.1);
+  --glass: rgba(255,255,255,0.07); --glass-b: rgba(255,255,255,0.1); --glass-h: rgba(255,255,255,0.12);
   --accent: #818cf8; --accent-s: rgba(129,140,248,0.15); --accent-b: rgba(129,140,248,0.35);
   --tx: rgba(255,255,255,0.92); --tx2: rgba(255,255,255,0.55); --tx3: rgba(255,255,255,0.3);
   --green: #34d399; --yellow: #fbbf24;
+  /* Surfaces — pro modaly, panely, hover efekty */
+  --surface:        rgba(13,13,26,0.97);
+  --surface-2:      rgba(255,255,255,0.04);
+  --surface-3:      rgba(255,255,255,0.07);
+  --hover:          rgba(255,255,255,0.05);
+  --border-subtle:  rgba(255,255,255,0.06);
+  --close-btn:      rgba(255,255,255,0.08);
+  --close-tx:       rgba(255,255,255,0.45);
 }
 [data-theme="light"] {
   --bg-from: #e8eaf6; --bg-to: #ede9fe;
   --orb1: rgba(99,102,241,0.2); --orb2: rgba(168,85,247,0.15); --orb3: rgba(59,130,246,0.12);
-  --glass: rgba(255,255,255,0.55); --glass-b: rgba(255,255,255,0.8); --glass-h: rgba(255,255,255,0.7);
+  --glass: rgba(255,255,255,0.6); --glass-b: rgba(180,180,220,0.5); --glass-h: rgba(255,255,255,0.75);
   --accent: #6366f1; --accent-s: rgba(99,102,241,0.1); --accent-b: rgba(99,102,241,0.3);
   --tx: rgba(15,15,40,0.92); --tx2: rgba(15,15,40,0.5); --tx3: rgba(15,15,40,0.3);
   --green: #059669;
+  --surface:        rgba(240,241,255,0.98);
+  --surface-2:      rgba(15,15,40,0.04);
+  --surface-3:      rgba(15,15,40,0.06);
+  --hover:          rgba(15,15,40,0.05);
+  --border-subtle:  rgba(15,15,40,0.07);
+  --close-btn:      rgba(15,15,40,0.08);
+  --close-tx:       rgba(15,15,40,0.4);
 }
 
 body {
@@ -30,11 +45,7 @@ body {
 }
 
 /* Orbs */
-.orb {
-  position: fixed; border-radius: 50%;
-  filter: blur(100px); pointer-events: none; z-index: 0;
-  animation: drift 12s ease-in-out infinite alternate;
-}
+.orb { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; animation: drift 12s ease-in-out infinite alternate; }
 .orb-1 { width: clamp(400px,50vw,700px); height: clamp(400px,50vw,700px); background: var(--orb1); top: -200px; right: -100px; }
 .orb-2 { width: clamp(350px,45vw,600px); height: clamp(350px,45vw,600px); background: var(--orb2); bottom: -150px; left: -150px; animation-delay: -6s; }
 .orb-3 { width: clamp(300px,35vw,500px); height: clamp(300px,35vw,500px); background: var(--orb3); top: 40%; left: 40%; animation-delay: -3s; }
@@ -49,15 +60,5 @@ body {
 .animate-glow-spin   { animation: glow-spin 3s linear infinite; }
 .animate-drain       { animation: progress-drain 8s linear forwards; }
 
-/* Glassmorphism utility */
-.glass {
-  background: var(--glass);
-  border: 1px solid var(--glass-b);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
+.glass { background: var(--glass); border: 1px solid var(--glass-b); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
 .glass-hover:hover { background: var(--glass-h); }
-
-/* Achievement popup slide */
-.ach-slide { transform: translateX(-120%); transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; }
-.ach-slide.show { transform: translateX(0); pointer-events: all; }
