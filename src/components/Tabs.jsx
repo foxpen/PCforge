@@ -6,7 +6,7 @@ export default function Tabs({ active, onSwitch, compareCount }) {
     { id: 'canrun',  label: '🎮 Rozjedu to?' },
   ]
   return (
-    <div className="relative z-10 px-[clamp(1.5rem,5vw,6rem)] pb-[clamp(1.5rem,3vh,2.5rem)]">
+    <div id="tabs" className="relative z-10 px-[clamp(1.5rem,5vw,6rem)] pb-[clamp(1.5rem,3vh,2.5rem)]">
       <div className="flex gap-1.5 glass rounded-2xl p-1.5 w-fit flex-wrap">
         {tabs.map(t => (
           <button
