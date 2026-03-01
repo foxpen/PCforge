@@ -1,4 +1,4 @@
-export default function Hero({ onStart }) {
+export default function Hero({ onStart, onSwitchToEZ }) {
   return (
     <>
       <section className="relative z-10 text-center px-[clamp(1.5rem,8vw,12rem)] pt-[clamp(80px,12vh,160px)] pb-[clamp(48px,6vh,80px)]">
@@ -13,13 +13,24 @@ export default function Hero({ onStart }) {
         <p className="mx-auto mb-10 leading-relaxed" style={{fontSize:'1.05rem', color:'var(--tx2)', maxWidth:'480px'}}>
           Porovnáváme ceny z Alzy, CZC, Mironetu a dalších. Ušetříš tisíce bez zdlouhavého hledání.
         </p>
-        <button
-          onClick={onStart}
-          className="px-9 py-3.5 rounded-2xl font-semibold text-white cursor-pointer transition-all hover:opacity-90 hover:-translate-y-0.5"
-          style={{background:'var(--accent)', boxShadow:'0 8px 30px rgba(129,140,248,0.3)'}}
-        >
-          Začít konfigurovat
-        </button>
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          <button
+            onClick={onStart}
+            className="px-9 py-3.5 rounded-2xl font-semibold text-white cursor-pointer transition-all hover:opacity-90 hover:-translate-y-0.5"
+            style={{background:'var(--accent)', boxShadow:'0 8px 30px rgba(129,140,248,0.3)'}}
+          >
+            Začít konfigurovat
+          </button>
+          {onSwitchToEZ && (
+            <button
+              onClick={onSwitchToEZ}
+              className="px-7 py-3.5 rounded-2xl font-semibold cursor-pointer transition-all hover:opacity-90 hover:-translate-y-0.5"
+              style={{background:'var(--accent2-s)', color:'var(--accent2)', border:'1px solid var(--accent2-b)'}}
+            >
+              🧩 EZ Mode
+            </button>
+          )}
+        </div>
       </section>
 
       <div className="relative z-10 flex justify-center gap-[clamp(0.75rem,2vw,1.5rem)] flex-wrap px-[clamp(1.5rem,5vw,6rem)] pb-[clamp(2rem,4vh,3rem)]">
