@@ -13,12 +13,14 @@ import AchievementPopup from './components/AchievementPopup.jsx'
 import AchievementHud from './components/AchievementHud.jsx'
 import Footer from './components/Footer.jsx'
 import { achievements } from './data/achievements.js'
+import PriceHistoryModal from './components/PriceHistoryModal.jsx'
 
 export default function App() {
   const [tab, setTab]               = useState('config')
   const [compareList, setCompareList] = useState([])
   const [achCurrent, setAchCurrent]   = useState(null)
   const [achQueue, setAchQueue]       = useState([])
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   // Vše persistováno v localStorage
   const [theme, setTheme]         = useLocalStorage('pcforge_theme', 'dark')
@@ -109,7 +111,7 @@ export default function App() {
           onRemove={build.removePick}
           onClear={build.clearBuild}
           onToggleCompare={toggleCompare}
-          onHistoryOpen={() => bump('historyOpened')}
+          onHistoryOpen={() => { setHistoryOpen(true); bump('historyOpened') }}
           onOpenAll={() => bump('openedAll')}
         />
         <Presets onLoad={p => { build.loadPreset(p); bump('presetLoaded') }} />
@@ -125,7 +127,7 @@ export default function App() {
           onAddToBuild={(k, id) => { build.pick(k, id); checkAchievements() }}
           onToggleCompare={toggleCompare}
           compareList={compareList}
-          onHistoryOpen={() => bump('historyOpened')}
+          onHistoryOpen={() => { setHistoryOpen(true); bump('historyOpened') }}
         />
       </div>
 
@@ -134,6 +136,8 @@ export default function App() {
       </div>
 
       <AchievementPopup achievement={achCurrent} onDismiss={dismissAch} />
+
+      {historyOpen && <PriceHistoryModal onClose={() => setHistoryOpen(false)} />}
 
       <AchievementHud
         level={Math.floor(totalXp / 100) + 1}
