@@ -178,6 +178,7 @@ export default function App() {
           onExport={() => bump('exported')}
           palette={paletteId}
           onPalette={setPaletteId}
+          onGoHome={() => setAppMode(null)}
         />
         <EZMode
           sel={build.sel}
@@ -189,6 +190,7 @@ export default function App() {
           onSaveBuild={saveBuild}
           onShare={() => { setShareOpen(true); bump('shared') }}
           onSwitchMode={() => setAppMode('advanced')}
+          onGoHome={() => setAppMode(null)}
           favorites={favorites}
           onToggleFavorite={toggleFavorite}
         />
@@ -231,6 +233,7 @@ export default function App() {
         onExport={() => bump('exported')}
         palette={paletteId}
         onPalette={setPaletteId}
+        onGoHome={() => setAppMode(null)}
       />
 
       <Hero onStart={() => { setTab('config'); document.getElementById('tabs')?.scrollIntoView({ behavior:'smooth' }) }}
