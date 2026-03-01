@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { cats, fmt, shopUrls } from '../data/cats.js'
 
-export default function Sidebar({ sel, selShop, total, count, onRemove, onOpenAll }) {
+export default function Sidebar({ sel, selShop, total, count, onRemove, onOpenAll, onSaveBuild, favorites, onToggleFavorite }) {
   const [sestavOpen, setSestavOpen] = useState(true)
   const [kompatOpen, setKompatOpen] = useState(true)
+  const [saveName,   setSaveName]   = useState('')
+  const [saveOpen,   setSaveOpen]   = useState(false)
 
   const cpu  = sel.cpu  ? cats.cpu.items.find(x => x.id === sel.cpu)   : null
   const gpu  = sel.gpu  ? cats.gpu.items.find(x => x.id === sel.gpu)   : null
@@ -14,21 +16,21 @@ export default function Sidebar({ sel, selShop, total, count, onRemove, onOpenAl
 
   const checks = []
   if (cpu && mb)   checks.push({ label:`Socket: CPU ${cpu.params.socket} ↔ MB ${mb.params.socket}`,  ok: cpu.params.socket === mb.params.socket })
-  if (ram && mb)   checks.push({ label:`RAM: ${ram.params.gen} ↔ MB ${mb.params.ddr}`,              ok: ram.params.gen === mb.params.ddr })
+  if (ram && mb)   checks.push({ label:`RAM: ${ram.params.gen} ↔ MB ${mb.params.ddr}`,               ok: ram.params.gen === mb.params.ddr })
   if (cpu && cool) { const r = cool.params.tdp/cpu.params.tdp; checks.push({ label:`Chlazení: ${cool.params.tdp}W vs CPU ${cpu.params.tdp}W`, ok: r>=1, warn: r>=0.8&&r<1 }) }
   if (gpu && psu)  { const req={rx6600:500,rtx4060:550,rtx4070:650,rtx4090:850}[gpu.id]||400; checks.push({ label:`PSU: ${psu.params.wattage}W vs GPU ${req}W`, ok: psu.params.wattage>=req+50, warn: psu.params.wattage>=req&&psu.params.wattage<req+50 }) }
 
-  const Row = ({ label, ok, warn }) => (
-    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[0.74rem] mt-1.5
-      ${ok ? 'bg-green-500/10 text-green-400' : warn ? 'bg-yellow-400/10 text-yellow-400' : 'bg-red-400/10 text-red-400'}`}>
-      <span>{ok ? '✅' : warn ? '⚠️' : '❌'}</span>
-      <span>{label}</span>
-    </div>
-  )
+  const handleSave = () => {
+    if (!saveName.trim()) return
+    onSaveBuild(saveName.trim())
+    setSaveName('')
+    setSaveOpen(false)
+  }
 
   return (
     <aside className="flex flex-col gap-3" style={{position:'sticky', top:'calc(64px + 1.5rem)'}}>
-      {/* Vaše sestava */}
+
+      {/* Sestava */}
       <div className="glass rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.9rem,1.5vw,1.3rem)] border-b cursor-pointer"
           style={{borderColor:'var(--glass-b)'}} onClick={() => setSestavOpen(o => !o)}>
@@ -47,9 +49,10 @@ export default function Sidebar({ sel, selShop, total, count, onRemove, onOpenAl
                 const shop  = selShop[k]
                 const price = shop && it?.shops[shop] ? it.shops[shop] : it?.price
                 const url   = shop && it && shopUrls[shop] ? shopUrls[shop](it.name) : null
+                const isFav = favorites?.some(f => f.catKey === k && f.id === sel[k])
                 return (
-                  <div key={k} className="flex items-center gap-2.5 px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.35rem,0.8vw,0.6rem)] border-b last:border-b-0 transition-colors hover:bg-white/[0.02]"
-                    style={{borderColor:'var(--surface-2)'}}>
+                  <div key={k} className="flex items-center gap-2.5 px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.35rem,0.8vw,0.6rem)] border-b last:border-b-0 transition-colors hover:bg-[var(--hover)]"
+                    style={{borderColor:'var(--border-subtle)'}}>
                     <span className="text-[0.9rem] flex-shrink-0">{cat.icon}</span>
                     <div className="flex-1 min-w-0">
                       <div className="text-[0.6rem] uppercase tracking-wider" style={{color:'var(--tx3)'}}>{cat.name.split('(')[0].trim()}</div>
@@ -61,7 +64,12 @@ export default function Sidebar({ sel, selShop, total, count, onRemove, onOpenAl
                     {it && (
                       <div className="flex items-center gap-1 ml-auto flex-shrink-0">
                         <span className="font-mono text-[0.72rem] font-semibold" style={{color:'var(--accent)'}}>{fmt(price)}</span>
-                        {url && <a href={url} target="_blank" rel="noopener noreferrer" className="text-[0.7rem] px-1 py-0.5 rounded transition-colors hover:bg-white/10" style={{color:'var(--accent)'}}>↗</a>}
+                        {url && <a href={url} target="_blank" rel="noopener noreferrer" className="text-[0.7rem] px-1 py-0.5 rounded transition-colors" style={{color:'var(--accent)'}}>↗</a>}
+                        <button onClick={() => onToggleFavorite(k, sel[k])}
+                          className="text-[0.8rem] px-1 border-none bg-transparent cursor-pointer transition-all"
+                          title={isFav ? 'Odebrat z oblíbených' : 'Přidat do oblíbených'}>
+                          {isFav ? '❤️' : '🤍'}
+                        </button>
                         <button onClick={() => onRemove(k)} className="text-[0.7rem] px-1 py-0.5 rounded cursor-pointer hover:text-red-400 transition-colors bg-transparent border-none" style={{color:'var(--tx3)'}}>✕</button>
                       </div>
                     )}
@@ -69,17 +77,44 @@ export default function Sidebar({ sel, selShop, total, count, onRemove, onOpenAl
                 )
               })}
             </div>
-            <div className="px-[clamp(1rem,2vw,1.5rem)] py-[clamp(1rem,1.5vw,1.3rem)] border-t" style={{borderColor:'var(--glass-b)'}}>
-              <div className="text-[0.68rem] uppercase tracking-widest mb-1" style={{color:'var(--tx2)'}}>Celkem od</div>
-              <div className="font-mono font-bold mb-1" style={{fontSize:'clamp(1.6rem,2.5vw,2.25rem)', color:'var(--tx)'}}>{total > 0 ? fmt(total) : '0 Kč'}</div>
-              <div className="text-[0.68rem] mb-4" style={{color:'var(--tx3)'}}>Nejlepší dostupné ceny · vč. DPH</div>
-              <button
-                onClick={onOpenAll} disabled={count < 8}
-                className="w-full py-3 rounded-2xl text-[0.88rem] font-semibold cursor-pointer transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:-translate-y-0.5"
-                style={{background:'var(--glass)', border:'1px solid var(--glass-b)', color:'var(--tx)'}}
-                onMouseEnter={e => { if(count>=8) { e.target.style.background='var(--accent-s)'; e.target.style.borderColor='var(--accent-b)' } }}
-                onMouseLeave={e => { e.target.style.background='var(--glass)'; e.target.style.borderColor='var(--glass-b)' }}
-              >⚡ Otevřít vše v eshopu</button>
+
+            <div className="px-[clamp(1rem,2vw,1.5rem)] py-[clamp(1rem,1.5vw,1.3rem)] border-t flex flex-col gap-3" style={{borderColor:'var(--glass-b)'}}>
+              <div>
+                <div className="text-[0.68rem] uppercase tracking-widest mb-1" style={{color:'var(--tx2)'}}>Celkem od</div>
+                <div className="font-mono font-bold mb-0.5" style={{fontSize:'clamp(1.6rem,2.5vw,2.25rem)', color:'var(--tx)'}}>{total > 0 ? fmt(total) : '0 Kč'}</div>
+                <div className="text-[0.68rem]" style={{color:'var(--tx3)'}}>Nejlepší dostupné ceny · vč. DPH</div>
+              </div>
+
+              {/* Uložit sestavu */}
+              {count > 0 && (
+                saveOpen ? (
+                  <div className="flex gap-2">
+                    <input autoFocus value={saveName} onChange={e => setSaveName(e.target.value)}
+                      onKeyDown={e => { if(e.key==='Enter') handleSave(); if(e.key==='Escape') setSaveOpen(false) }}
+                      placeholder="Název sestavy..."
+                      className="flex-1 px-3 py-2 rounded-xl text-[0.8rem] border outline-none font-sans"
+                      style={{background:'var(--surface-2)', borderColor:'var(--glass-b)', color:'var(--tx)'}} />
+                    <button onClick={handleSave}
+                      className="px-3 py-2 rounded-xl text-[0.8rem] font-semibold cursor-pointer border-none"
+                      style={{background:'var(--accent)', color:'#fff'}}>✓</button>
+                    <button onClick={() => setSaveOpen(false)}
+                      className="px-3 py-2 rounded-xl text-[0.8rem] cursor-pointer border-none"
+                      style={{background:'var(--surface-2)', color:'var(--tx2)'}}>✕</button>
+                  </div>
+                ) : (
+                  <button onClick={() => setSaveOpen(true)}
+                    className="w-full py-2.5 rounded-xl text-[0.82rem] font-semibold cursor-pointer transition-all hover:-translate-y-0.5 border"
+                    style={{background:'var(--accent-s)', borderColor:'var(--accent-b)', color:'var(--accent)'}}>
+                    💾 Uložit sestavu
+                  </button>
+                )
+              )}
+
+              <button onClick={onOpenAll} disabled={count < 8}
+                className="w-full py-2.5 rounded-xl text-[0.82rem] font-semibold cursor-pointer transition-all disabled:opacity-30 disabled:cursor-not-allowed border"
+                style={{background:'var(--surface-2)', borderColor:'var(--glass-b)', color:'var(--tx)'}}>
+                ⚡ Otevřít vše v e-shopu
+              </button>
             </div>
           </>
         )}
@@ -89,10 +124,14 @@ export default function Sidebar({ sel, selShop, total, count, onRemove, onOpenAl
       {checks.length > 0 && (
         <div className="glass rounded-2xl px-[clamp(1rem,2vw,1.5rem)] py-[clamp(1rem,1.5vw,1.3rem)]">
           <div className="flex items-center justify-between cursor-pointer" onClick={() => setKompatOpen(o => !o)}>
-            <span className="text-[0.7rem] font-bold uppercase tracking-wider" style={{color:'var(--tx2)'}}>🔍 Kontrola kompatibility</span>
+            <span className="text-[0.7rem] font-bold uppercase tracking-wider" style={{color:'var(--tx2)'}}>🔍 Kompatibilita</span>
             <span className={`text-[0.65rem] transition-transform ${kompatOpen ? '' : 'rotate-180'}`} style={{color:'var(--tx3)'}}>▲</span>
           </div>
-          {kompatOpen && checks.map((c,i) => <Row key={i} {...c} />)}
+          {kompatOpen && checks.map((c,i) => (
+            <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[0.74rem] mt-1.5 ${c.ok ? 'bg-green-500/10 text-green-400' : c.warn ? 'bg-yellow-400/10 text-yellow-400' : 'bg-red-400/10 text-red-400'}`}>
+              <span>{c.ok ? '✅' : c.warn ? '⚠️' : '❌'}</span><span>{c.label}</span>
+            </div>
+          ))}
         </div>
       )}
     </aside>

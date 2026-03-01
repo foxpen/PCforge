@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { cats, fmt, shopUrls } from '../data/cats.js'
 import Sidebar from './Sidebar.jsx'
 
-export default function Configurator({ sel, selShop, total, count, compareList, onPick, onPickShop, onRemove, onClear, onToggleCompare, onHistoryOpen, onOpenAll }) {
+export default function Configurator({ sel, selShop, total, count, compareList, favorites, onPick, onPickShop, onRemove, onClear, onToggleCompare, onHistoryOpen, onOpenAll, onSaveBuild, onToggleFavorite }) {
   const [openCat, setOpenCat]         = useState(null)
   const [activeFilters, setActiveFilters] = useState({})
   const [configOpen, setConfigOpen]   = useState(true)
@@ -168,7 +168,7 @@ export default function Configurator({ sel, selShop, total, count, compareList, 
       </div>
 
       {/* Sidebar */}
-      <Sidebar sel={sel} selShop={selShop} total={total} count={count} onRemove={onRemove} onOpenAll={onOpenAll} />
+      <Sidebar sel={sel} selShop={selShop} total={total} count={count} onRemove={onRemove} onOpenAll={onOpenAll} onSaveBuild={onSaveBuild} favorites={favorites} onToggleFavorite={onToggleFavorite} />
     </div>
   )
 }

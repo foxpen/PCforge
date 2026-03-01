@@ -1,9 +1,10 @@
-export default function Tabs({ active, onSwitch, compareCount }) {
+export default function Tabs({ active, onSwitch, compareCount, savedCount }) {
   const tabs = [
     { id: 'config',  label: '⚙️ Konfigurátor' },
     { id: 'compare', label: '⚖️ Porovnání', badge: compareCount },
     { id: 'catalog', label: '🛒 Katalog' },
     { id: 'canrun',  label: '🎮 Rozjedu to?' },
+    { id: 'saved',   label: '💾 Uložené', badge: savedCount },
   ]
   return (
     <div id="tabs" className="relative z-10 px-[clamp(1.5rem,5vw,6rem)] pb-[clamp(1.5rem,3vh,2.5rem)]">
