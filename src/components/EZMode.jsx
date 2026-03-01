@@ -420,11 +420,12 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
         </div>
       </div>
 
-      {/* ═══ LEVÝ INFO PANEL — vyjíždí z okraje obrazovky ═══ */}
-      <div className="fixed z-40 top-[80px]" style={{
+      {/* ═══ LEVÝ INFO PANEL — vyjíždí z okraje obrazovky (hidden on mobile) ═══ */}
+      <div className="fixed z-40 ez-info-panel" style={{
+        top: 'clamp(160px, 22vh, 220px)',
         left: infoOpen ? 0 : '-340px',
         transition: 'left 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        width: 'clamp(280px,22vw,340px)',
+        width: 'clamp(260px,20vw,340px)',
       }}>
         <div className="relative ml-0 rounded-r-2xl overflow-hidden"
           style={{
@@ -495,9 +496,9 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
       {/* Toggle button pokud je panel zavřený */}
       {!infoOpen && (
         <button onClick={() => setInfoOpen(true)}
-          className="fixed z-40 flex items-center gap-1.5 cursor-pointer border-none transition-all hover:scale-105"
+          className="fixed z-40 flex items-center gap-1.5 cursor-pointer border-none transition-all hover:scale-105 ez-info-toggle"
           style={{
-            top: 90, left: 0,
+            top: 'clamp(160px, 22vh, 220px)', left: 0,
             padding: '10px 14px 10px 12px',
             borderRadius: '0 14px 14px 0',
             background: 'var(--surface)',
@@ -514,8 +515,7 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
       )}
 
       {/* Main grid */}
-      <div className="relative z-10 grid gap-[clamp(0.85rem,1.5vw,1.5rem)] px-[clamp(1.5rem,5vw,6rem)] pb-[clamp(4rem,8vh,8rem)] items-start"
-        style={{gridTemplateColumns:'1fr clamp(300px,28vw,420px)'}}>
+      <div className="relative z-10 grid gap-[clamp(0.85rem,1.5vw,1.5rem)] px-[clamp(1rem,4vw,6rem)] pb-[clamp(4rem,8vh,8rem)] items-start ez-grid">
 
         {/* LEFT — PC + actions */}
         <div className="flex flex-col gap-4">
@@ -551,7 +551,19 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
         </div>
 
         {/* RIGHT — Picker + Compat + Games */}
-        <div className="flex flex-col gap-3" style={{position:'sticky', top:'calc(64px + 1.5rem)'}}>
+        <div className="flex flex-col gap-3 ez-picker">
+
+          {/* Mobile info — viditelná jen na mobilu místo levého panelu */}
+          <div className="ez-mobile-info glass rounded-2xl px-4 py-3"
+            style={{border:'1px solid var(--accent2-b)', background:'var(--accent2-s)'}}>
+            <div className="flex items-start gap-2.5">
+              <span className="text-lg flex-shrink-0">{SLOT_META[activeCat]?.icon}</span>
+              <div>
+                <div className="font-semibold text-[0.85rem]" style={{color:'var(--accent2)'}}>{SLOT_META[activeCat]?.label}</div>
+                <div className="text-[0.75rem] leading-relaxed" style={{color:'var(--tx2)'}}>{SLOT_META[activeCat]?.tooltip}</div>
+              </div>
+            </div>
+          </div>
 
           {/* Category tabs */}
           <div className="flex flex-wrap gap-1 p-1 rounded-xl" style={{background:'var(--glass)'}}>
@@ -652,6 +664,57 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
           )}
         </div>
       </div>
+
+      {/* Responsive styles */}
+      <style>{`
+        .ez-grid {
+          grid-template-columns: 1fr clamp(300px, 28vw, 420px);
+        }
+        .ez-mobile-info {
+          display: none;
+        }
+        .ez-picker {
+          position: sticky;
+          top: calc(64px + 1.5rem);
+        }
+
+        /* Tablet landscape */
+        @media (max-width: 1100px) {
+          .ez-grid {
+            grid-template-columns: 1fr clamp(280px, 35vw, 380px);
+            padding-left: clamp(1rem, 3vw, 3rem) !important;
+            padding-right: clamp(1rem, 3vw, 3rem) !important;
+          }
+        }
+
+        /* Tablet portrait */
+        @media (max-width: 900px) {
+          .ez-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem !important;
+          }
+          .ez-picker {
+            position: static;
+          }
+          .ez-info-panel {
+            display: none !important;
+          }
+          .ez-info-toggle {
+            display: none !important;
+          }
+          .ez-mobile-info {
+            display: block;
+          }
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+          .ez-grid {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }
