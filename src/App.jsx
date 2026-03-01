@@ -87,7 +87,7 @@ export default function App() {
         onExport={() => bump('exported')}
       />
 
-      <Hero />
+      <Hero onStart={() => { setTab('config'); document.getElementById('tabs')?.scrollIntoView({ behavior:'smooth' }) }} />
 
       <Tabs
         active={tab}
