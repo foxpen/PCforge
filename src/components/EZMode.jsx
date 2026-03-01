@@ -341,6 +341,7 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
   const [saveOpen, setSaveOpen]     = useState(false)
   const [saveName, setSaveName]     = useState('')
   const [hoveredSlot, setHoveredSlot] = useState(null)
+  const [infoOpen, setInfoOpen]       = useState(true)
 
   const filledCount = SLOT_ORDER.filter(k => !!sel[k]).length
   const progress = Math.round(filledCount / 8 * 100)
@@ -349,7 +350,13 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
   const handleSelect = (catKey, itemId) => {
     onPick(catKey, itemId)
     const nextEmpty = SLOT_ORDER.find(k => k !== catKey && !sel[k])
-    if (nextEmpty) setTimeout(() => setActiveCat(nextEmpty), 300)
+    if (nextEmpty) setTimeout(() => { setActiveCat(nextEmpty); setInfoOpen(true) }, 300)
+  }
+
+  // Otevři panel při změně kategorie
+  const switchCat = (key) => {
+    setActiveCat(key)
+    setInfoOpen(true)
   }
 
   const handleSave = () => {
@@ -387,18 +394,6 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
           </div>
         </div>
 
-        {/* Tooltip bublina pro aktuální kategorii */}
-        <div className="glass rounded-2xl px-4 py-3 mb-4 transition-all"
-          style={{border:'1px solid var(--accent2-b)', background:'var(--accent2-s)'}}>
-          <div className="flex items-start gap-3">
-            <span className="text-xl flex-shrink-0 mt-0.5">{SLOT_META[activeCat]?.icon}</span>
-            <div>
-              <div className="font-semibold text-[0.88rem] mb-0.5" style={{color:'var(--accent2)'}}>{SLOT_META[activeCat]?.label}</div>
-              <div className="text-[0.78rem] leading-relaxed" style={{color:'var(--tx2)'}}>{SLOT_META[activeCat]?.tooltip}</div>
-            </div>
-          </div>
-        </div>
-
         {/* Progress bar */}
         <div>
           <div className="flex justify-between mb-1.5 items-center">
@@ -413,7 +408,7 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
           </div>
           <div className="flex gap-1 mt-2">
             {SLOT_ORDER.map(key => (
-              <div key={key} onClick={() => setActiveCat(key)}
+              <div key={key} onClick={() => switchCat(key)}
                 className="cursor-pointer transition-all"
                 style={{flex:1,height:3,borderRadius:2,
                   background: sel[key] ? 'var(--accent2)' : activeCat===key ? 'var(--accent2-s)' : 'var(--glass-b)',
@@ -425,13 +420,106 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
         </div>
       </div>
 
+      {/* ═══ LEVÝ INFO PANEL — vyjíždí z okraje obrazovky ═══ */}
+      <div className="fixed z-40 top-[80px]" style={{
+        left: infoOpen ? 0 : '-340px',
+        transition: 'left 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        width: 'clamp(280px,22vw,340px)',
+      }}>
+        <div className="relative ml-0 rounded-r-2xl overflow-hidden"
+          style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--accent2-b)',
+            borderLeft: 'none',
+            backdropFilter: 'blur(24px)',
+            boxShadow: '4px 0 30px rgba(0,0,0,0.2)',
+          }}>
+          {/* Accent top line */}
+          <div style={{height:3, background:'linear-gradient(90deg, var(--accent2), transparent)'}} />
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 pt-4 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{SLOT_META[activeCat]?.icon}</span>
+              <div>
+                <div className="font-bold text-[1.05rem]" style={{color:'var(--accent2)'}}>{SLOT_META[activeCat]?.label}</div>
+                <div className="text-[0.68rem] font-medium" style={{color:'var(--tx3)'}}>{SLOT_META[activeCat]?.desc}</div>
+              </div>
+            </div>
+            <button onClick={() => setInfoOpen(false)}
+              className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer text-xs border-none transition-all hover:scale-110"
+              style={{background:'var(--surface-2)', color:'var(--tx3)'}}>✕</button>
+          </div>
+
+          {/* Tooltip text */}
+          <div className="px-5 pb-4 pt-1">
+            <div className="text-[0.82rem] leading-[1.6]" style={{color:'var(--tx2)'}}>
+              {SLOT_META[activeCat]?.tooltip}
+            </div>
+          </div>
+
+          {/* Quick nav — klikatelné sloty */}
+          <div className="px-5 pb-4">
+            <div className="text-[0.6rem] font-bold uppercase tracking-widest mb-2" style={{color:'var(--tx3)'}}>Komponenty</div>
+            <div className="flex flex-col gap-1">
+              {SLOT_ORDER.map(key => {
+                const meta = SLOT_META[key]
+                const filled = !!sel[key]
+                const active = activeCat === key
+                const item = sel[key] ? cats[key]?.items.find(x => x.id === sel[key]) : null
+                return (
+                  <button key={key} onClick={() => switchCat(key)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl border-none cursor-pointer transition-all text-left w-full"
+                    style={{
+                      background: active ? 'var(--accent2-s)' : 'transparent',
+                      border: active ? '1px solid var(--accent2-b)' : '1px solid transparent',
+                    }}>
+                    <span className="text-base flex-shrink-0">{meta.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[0.75rem] font-medium truncate" style={{color: active ? 'var(--accent2)' : filled ? 'var(--tx)' : 'var(--tx3)'}}>
+                        {filled && item ? item.name.split(' ').slice(0,3).join(' ') : meta.label}
+                      </div>
+                    </div>
+                    {filled
+                      ? <span style={{width:6,height:6,borderRadius:'50%',background:'var(--green)',flexShrink:0}} />
+                      : <span className="text-[0.6rem]" style={{color:'var(--tx3)'}}>—</span>
+                    }
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Toggle button pokud je panel zavřený */}
+      {!infoOpen && (
+        <button onClick={() => setInfoOpen(true)}
+          className="fixed z-40 flex items-center gap-1.5 cursor-pointer border-none transition-all hover:scale-105"
+          style={{
+            top: 90, left: 0,
+            padding: '10px 14px 10px 12px',
+            borderRadius: '0 14px 14px 0',
+            background: 'var(--surface)',
+            border: '1px solid var(--accent2-b)',
+            borderLeft: 'none',
+            boxShadow: '4px 0 20px rgba(0,0,0,0.15)',
+            color: 'var(--accent2)',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+          }}>
+          <span className="text-base">{SLOT_META[activeCat]?.icon}</span>
+          <span>ℹ️</span>
+        </button>
+      )}
+
       {/* Main grid */}
       <div className="relative z-10 grid gap-[clamp(0.85rem,1.5vw,1.5rem)] px-[clamp(1.5rem,5vw,6rem)] pb-[clamp(4rem,8vh,8rem)] items-start"
         style={{gridTemplateColumns:'1fr clamp(300px,28vw,420px)'}}>
 
         {/* LEFT — PC + actions */}
         <div className="flex flex-col gap-4">
-          <PCCutaway sel={sel} activeCat={activeCat} nextSlot={nextSlot} onSlotClick={setActiveCat} />
+          <PCCutaway sel={sel} activeCat={activeCat} nextSlot={nextSlot} onSlotClick={switchCat} />
 
           {/* Save / Share buttons */}
           {filledCount > 0 && (
@@ -471,7 +559,7 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
               const filled = !!sel[key]
               const active = activeCat === key
               return (
-                <button key={key} onClick={() => setActiveCat(key)}
+                <button key={key} onClick={() => switchCat(key)}
                   className="flex items-center gap-1 rounded-lg border-none cursor-pointer transition-all"
                   style={{
                     padding:'5px 8px', fontSize:'0.72rem', fontWeight:600,
