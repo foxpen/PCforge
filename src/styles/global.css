@@ -30,6 +30,16 @@
   --accent-s: rgba(129,140,248,0.14);
   --accent-b: rgba(129,140,248,0.32);
 
+  /* Accent 2 — warm/price barva (ceny, sidebar highlight) */
+  --accent2:   #f59e0b;
+  --accent2-s: rgba(245,158,11,0.12);
+  --accent2-b: rgba(245,158,11,0.28);
+  --accent2-glow: rgba(245,158,11,0.15);
+
+  /* Sidebar panel */
+  --sidebar-bg:   linear-gradient(165deg, rgba(245,158,11,0.06) 0%, rgba(15,12,28,0.97) 40%);
+  --sidebar-line:  linear-gradient(90deg, transparent, var(--accent2), transparent);
+
   /* Typografie */
   --tx:  rgba(255,255,255,0.92);
   --tx2: rgba(255,255,255,0.52);
@@ -67,6 +77,16 @@
   --accent:   #6366f1;
   --accent-s: rgba(99,102,241,0.1);
   --accent-b: rgba(99,102,241,0.28);
+
+  /* Accent 2 — warm/price barva */
+  --accent2:   #d97706;
+  --accent2-s: rgba(217,119,6,0.1);
+  --accent2-b: rgba(217,119,6,0.22);
+  --accent2-glow: rgba(217,119,6,0.1);
+
+  /* Sidebar panel */
+  --sidebar-bg:   linear-gradient(165deg, rgba(217,119,6,0.06) 0%, rgba(255,255,255,0.72) 40%);
+  --sidebar-line:  linear-gradient(90deg, transparent, var(--accent2), transparent);
 
   /* Typografie */
   --tx:  rgba(12,12,36,0.92);
@@ -126,3 +146,76 @@ body {
   border: 1px solid var(--panel-b);
 }
 .panel-hover:hover { background: var(--panel-h); }
+
+/* Sidebar — zvýrazněný panel "Vaše sestava" */
+.sidebar-panel {
+  background: var(--sidebar-bg);
+  border: 1px solid var(--accent2-b);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  position: relative;
+  overflow: hidden;
+}
+.sidebar-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--sidebar-line);
+}
+.sidebar-panel::after {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, var(--accent2-glow) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Sidebar item row */
+.sidebar-item {
+  background: var(--accent2-s);
+  border-left: 2px solid var(--accent2-b);
+  transition: background 0.2s;
+}
+.sidebar-item:hover {
+  background: rgba(245,158,11,0.08);
+}
+
+/* Price highlight v sidebaru */
+.price-accent2 {
+  color: var(--accent2);
+  font-weight: 600;
+}
+
+/* Velká celková cena */
+.total-price {
+  color: var(--accent2);
+  text-shadow: 0 0 30px var(--accent2-glow);
+}
+
+/* Sidebar CTA button */
+.sidebar-cta {
+  background: linear-gradient(135deg, var(--accent2), color-mix(in srgb, var(--accent2), #000 20%));
+  box-shadow: 0 4px 20px var(--accent2-glow);
+  border: none;
+  color: #0f0a1a;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+.sidebar-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px var(--accent2-glow);
+}
+
+/* Sidebar secondary button */
+.sidebar-btn-secondary {
+  border: 1px solid var(--accent2-b);
+  color: var(--accent2);
+  background: transparent;
+  transition: all 0.2s;
+}
+.sidebar-btn-secondary:hover {
+  background: var(--accent2-s);
+}
