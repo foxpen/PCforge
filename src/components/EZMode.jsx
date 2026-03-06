@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { cats, fmt, shopUrls } from '../data/cats.js'
 import { games } from '../data/games.js'
+import LegoScene from './LegoScene.jsx'
 
 const SLOT_ORDER = ['case','mb','cpu','cool','gpu','ram','ssd','psu']
 const SLOT_META = {
@@ -519,7 +520,7 @@ export default function EZMode({ sel, selShop, total, count, onPick, onRemove, o
 
         {/* LEFT — PC + actions */}
         <div className="flex flex-col gap-4">
-          <PCCutaway sel={sel} activeCat={activeCat} nextSlot={nextSlot} onSlotClick={switchCat} />
+          <LegoScene sel={sel} activeCat={activeCat} />
 
           {/* Save / Share buttons */}
           {filledCount > 0 && (
