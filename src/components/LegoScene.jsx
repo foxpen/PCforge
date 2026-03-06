@@ -1,71 +1,75 @@
 import { useEffect, useRef } from 'react'
 
 /**
- * LegoScene — Three.js izometrická LEGO scéna pro PCForge EZ Mode
- * Pracovní stůl s komponentami, teplé amber osvětlení, kočka 🐱
+ * LegoScene — Three.js LEGO scéna s animovanou montáží
+ * Komponenty letí ze stolu do skříně při výběru, a zpět při odebrání
  */
 export default function LegoScene({ sel = {}, activeCat = null }) {
-  const mountRef  = useRef(null)
-  const sceneRef  = useRef(null)
-  const selRef    = useRef(sel)
+  const mountRef = useRef(null)
+  const sceneRef = useRef(null)
+  const prevSelRef = useRef({})
 
-  // Průběžně aktualizuj ref (bez remount)
   useEffect(() => {
-    selRef.current = sel
-    sceneRef.current?.updateHighlights(sel, activeCat)
+    const prev = prevSelRef.current
+    const api  = sceneRef.current
+
+    if (api) {
+      const allKeys = new Set([...Object.keys(prev), ...Object.keys(sel)])
+      allKeys.forEach(key => {
+        const wasOn = !!prev[key]
+        const isOn  = !!sel[key]
+        if (!wasOn && isOn)  api.mountComponent(key)
+        if (wasOn  && !isOn) api.unmountComponent(key)
+      })
+      api.setActive(activeCat)
+    }
+
+    prevSelRef.current = { ...sel }
   }, [sel, activeCat])
 
   useEffect(() => {
     const container = mountRef.current
     if (!container) return
-
     let cleanup = null
 
-    // Three.js načítáme přes CDN — pokud už je načteno, rovnou inicializuj
     const init = () => {
-      cleanup = buildScene(container, selRef.current, activeCat, (api) => {
+      cleanup = buildScene(container, sel, activeCat, api => {
         sceneRef.current = api
+        Object.keys(sel).forEach(k => { if (sel[k]) api.mountComponent(k, true) })
+        if (activeCat) api.setActive(activeCat)
       })
     }
 
-    if (window.THREE) {
-      init()
-    } else {
-      const script = document.createElement('script')
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
-      script.onload = init
-      document.head.appendChild(script)
+    if (window.THREE) { init() }
+    else {
+      const s = document.createElement('script')
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
+      s.onload = init
+      document.head.appendChild(s)
     }
 
-    return () => {
-      cleanup?.()
-      sceneRef.current = null
-    }
-  }, []) // pouze mount
+    return () => { cleanup?.(); sceneRef.current = null }
+  }, [])
 
   return (
     <div
       ref={mountRef}
       style={{
         width: '100%',
-        height: 'clamp(280px, 42vw, 500px)',
+        height: 'clamp(300px, 44vw, 520px)',
         borderRadius: '1.25rem',
         overflow: 'hidden',
-        background: 'transparent',
       }}
     />
   )
 }
 
-// ─────────────────────────────────────────────
-//  HLAVNÍ BUILDER SCÉNY
-// ─────────────────────────────────────────────
-function buildScene(container, initialSel, initialActiveCat, onReady) {
+// ─────────────────────────────────────────────────────────
+function buildScene(container, _initialSel, initialActiveCat, onReady) {
   const THREE = window.THREE
   const W = container.clientWidth
   const H = container.clientHeight
 
-  // ── Renderer ──
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
   renderer.setSize(W, H)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -73,521 +77,325 @@ function buildScene(container, initialSel, initialActiveCat, onReady) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
   container.appendChild(renderer.domElement)
 
-  // ── Scene ──
   const scene = new THREE.Scene()
-
-  // ── Izometrická kamera ──
-  const d = 11
-  const aspect = W / H
-  const camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 0.1, 100)
+  const d = 11, asp = W / H
+  const camera = new THREE.OrthographicCamera(-d*asp, d*asp, d, -d, 0.1, 100)
   camera.position.set(15, 15, 15)
   camera.lookAt(0, 0, 0)
 
-  // ── Světla ──
+  // Světla
   scene.add(new THREE.AmbientLight(0xfff5e0, 0.55))
-
   const sun = new THREE.DirectionalLight(0xffcc88, 1.1)
-  sun.position.set(10, 14, 8)
-  sun.castShadow = true
+  sun.position.set(10, 14, 8); sun.castShadow = true
   sun.shadow.mapSize.set(2048, 2048)
-  sun.shadow.camera.near = 0.1
-  sun.shadow.camera.far = 60
-  ;[-15, 15, 15, -15].forEach((v, i) => {
-    const c = sun.shadow.camera
-    if (i === 0) c.left = v
-    if (i === 1) c.right = v
-    if (i === 2) c.top = v
-    if (i === 3) c.bottom = v
-  })
+  sun.shadow.camera.left = sun.shadow.camera.bottom = -15
+  sun.shadow.camera.right = sun.shadow.camera.top = 15
   scene.add(sun)
+  scene.add(Object.assign(new THREE.DirectionalLight(0xaaccff, 0.3), { position: new THREE.Vector3(-8,6,-6) }))
+  const lamp = new THREE.PointLight(0xff9944, 0.8, 20)
+  lamp.position.set(-5, 7, -2); scene.add(lamp)
 
-  const fill = new THREE.DirectionalLight(0xaaccff, 0.3)
-  fill.position.set(-8, 6, -6)
-  scene.add(fill)
-
-  // Teplé světlo zboku (lampička)
-  const lamp = new THREE.PointLight(0xff9944, 0.8, 18)
-  lamp.position.set(-5, 6, -2)
-  scene.add(lamp)
-
-  // ── Materiál helper ──
-  const mat = (color, rough = 0.7, metal = 0) =>
-    new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal })
-
-  const mbox = (w, h, d, m) => {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m)
-    mesh.castShadow = true
-    mesh.receiveShadow = true
-    return mesh
+  const mat  = (c, r=0.7, m=0) => new THREE.MeshStandardMaterial({ color:c, roughness:r, metalness:m })
+  const mbox = (w, h, d, material) => {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), material)
+    mesh.castShadow = true; mesh.receiveShadow = true; return mesh
   }
-
-  // LEGO brick — tělo + studs
-  const legoBrick = (w, h, d, color, sx = 1, sz = 1) => {
+  const legoBrick = (w, h, d, color, sx=1, sz=1) => {
     const g = new THREE.Group()
-    const m = mat(color, 0.65)
-    const body = mbox(w, h, d, m)
-    g.add(body)
-    for (let xi = 0; xi < sx; xi++) {
-      for (let zi = 0; zi < sz; zi++) {
-        const stub = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.21, 0.21, 0.13, 12),
-          mat(color, 0.6)
-        )
-        stub.castShadow = true
-        stub.position.set(
-          -w / 2 + (xi + 0.5) * (w / sx),
-          h / 2 + 0.065,
-          -d / 2 + (zi + 0.5) * (d / sz)
-        )
-        g.add(stub)
-      }
+    g.add(mbox(w,h,d, mat(color,0.65)))
+    for (let xi=0;xi<sx;xi++) for (let zi=0;zi<sz;zi++) {
+      const stub = new THREE.Mesh(new THREE.CylinderGeometry(0.21,0.21,0.13,10), mat(color,0.6))
+      stub.castShadow = true
+      stub.position.set(-w/2+(xi+.5)*(w/sx), h/2+.065, -d/2+(zi+.5)*(d/sz))
+      g.add(stub)
     }
     return g
   }
 
   // ── STŮL ──
-  const desk = new THREE.Group()
-  scene.add(desk)
-
-  // Deska
-  const deskTop = mbox(18, 0.28, 12, mat(0x7a5230, 0.8))
-  deskTop.position.y = -0.14
-  deskTop.receiveShadow = true
-  desk.add(deskTop)
-
-  // Povrch — světlejší
-  const deskSurf = mbox(17.7, 0.05, 11.7, mat(0x9b6b3f, 0.75))
-  deskSurf.position.y = 0.025
-  desk.add(deskSurf)
-
-  // Nožičky
-  ;[[-8.4, -5.4], [8.4, -5.4], [-8.4, 5.4], [8.4, 5.4]].forEach(([x, z]) => {
-    const leg = mbox(0.45, 3.2, 0.45, mat(0x4a2f15, 0.9))
-    leg.position.set(x * 0.95, -1.74, z * 0.95)
-    desk.add(leg)
+  const desk = new THREE.Group(); scene.add(desk)
+  const deskTop = mbox(18,0.28,12, mat(0x7a5230,0.8))
+  deskTop.position.y=-0.14; deskTop.receiveShadow=true; desk.add(deskTop)
+  const deskSurf = mbox(17.7,0.05,11.7, mat(0x9b6b3f,0.75))
+  deskSurf.position.y=0.025; desk.add(deskSurf)
+  ;[[-8.4,-5.4],[8.4,-5.4],[-8.4,5.4],[8.4,5.4]].forEach(([x,z]) => {
+    const leg = mbox(0.45,3.2,0.45, mat(0x4a2f15,0.9)); leg.position.set(x*.95,-1.74,z*.95); desk.add(leg)
   })
+  const drw = mbox(4.2,0.65,0.22, mat(0x5a3a1a,0.85)); drw.position.set(5.5,-0.9,5.88); desk.add(drw)
+  const drwH = mbox(1.3,0.12,0.12, mat(0xb87333,0.4,0.7)); drwH.position.set(5.5,-0.9,6.08); desk.add(drwH)
 
-  // Zásuvka
-  const drw = mbox(4.2, 0.65, 0.22, mat(0x5a3a1a, 0.85))
-  drw.position.set(5.5, -0.9, 5.88)
-  desk.add(drw)
-  const drwH = mbox(1.3, 0.12, 0.12, mat(0xb87333, 0.4, 0.7))
-  drwH.position.set(5.5, -0.9, 6.08)
-  desk.add(drwH)
-
-  // ── KOMPONENTY NA STOLE ──
-  const compGroups = {}
-
-  // ── ZÁKLADNÍ DESKA ──
-  const mb = new THREE.Group()
-  mb.position.set(-4.5, 0.08, -1.5)
-  const mbBase = legoBrick(4.2, 0.28, 3.6, 0x1a3a18, 4, 3)
-  mb.add(mbBase)
-  // CPU socket area
-  const sock = legoBrick(0.85, 0.14, 0.85, 0x2a4a28, 1, 1)
-  sock.position.set(0.4, 0.21, -0.3)
-  mb.add(sock)
-  // RAM sloty
-  ;[-0.28, 0.28].forEach(x => {
-    const rs = legoBrick(0.18, 0.38, 1.4, 0x111a11, 1, 1)
-    rs.position.set(1.55 + x, 0.33, -0.3)
-    mb.add(rs)
-  })
-  // PCIe
-  const pcie = legoBrick(2.8, 0.13, 0.18, 0x111a11, 2, 1)
-  pcie.position.set(-0.2, 0.205, 0.9)
-  mb.add(pcie)
-  // Konektory vzadu
-  const io = legoBrick(0.3, 0.5, 1.8, 0x2a2a3c, 1, 2)
-  io.position.set(-1.85, 0.39, -0.3)
-  mb.add(io)
-  compGroups.mb = mb
-  scene.add(mb)
-
-  // ── CPU ──
-  const cpu = new THREE.Group()
-  cpu.position.set(-2.2, 0.08, 2.8)
-  const cpuBase = legoBrick(1.3, 0.18, 1.3, 0x888899, 1, 1)
-  cpu.add(cpuBase)
-  const cpuDie = mbox(0.75, 0.13, 0.75, mat(0x222230, 0.25, 0.85))
-  cpuDie.position.y = 0.155
-  cpu.add(cpuDie)
-  // Piny (naznačené)
-  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
-    const pin = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.02, 0.02, 0.1, 4),
-      mat(0xaaaacc, 0.3, 0.9)
-    )
-    pin.position.set(-0.45 + i * 0.45, -0.14, -0.45 + j * 0.45)
-    cpu.add(pin)
-  }
-  compGroups.cpu = cpu
-  scene.add(cpu)
-
-  // ── GPU ──
-  const gpu = new THREE.Group()
-  gpu.position.set(-4.5, 0.08, 2.0)
-  const gpuPCB = legoBrick(3.8, 0.32, 1.3, 0x1e1e2a, 3, 1)
-  gpu.add(gpuPCB)
-  // Shroud — oranžový kryt
-  const shroud = legoBrick(3.4, 0.55, 1.1, 0x2d2d3a, 3, 1)
-  shroud.position.y = 0.435
-  gpu.add(shroud)
-  // Ventilátory
-  ;[-1.1, 0, 1.1].forEach(x => {
-    const fanRing = new THREE.Mesh(
-      new THREE.TorusGeometry(0.35, 0.06, 8, 16),
-      mat(0xf59e0b, 0.5)
-    )
-    fanRing.position.set(x, 0.75, 0)
-    fanRing.rotation.x = Math.PI / 2
-    gpu.add(fanRing)
-    const fanHub = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.09, 0.09, 0.14, 8),
-      mat(0x111118, 0.8)
-    )
-    fanHub.position.set(x, 0.75, 0)
-    fanHub.rotation.x = Math.PI / 2
-    gpu.add(fanHub)
-    // Lopatky (6x)
-    for (let b = 0; b < 6; b++) {
-      const blade = mbox(0.28, 0.05, 0.07, mat(0x555566, 0.6))
-      blade.position.set(
-        x + Math.cos((b / 6) * Math.PI * 2) * 0.22,
-        0.75,
-        Math.sin((b / 6) * Math.PI * 2) * 0.22
-      )
-      blade.rotation.y = (b / 6) * Math.PI * 2
-      gpu.add(blade)
-    }
-  })
-  // PCIe konektor
-  const pcieConn = legoBrick(0.35, 0.3, 1.0, 0xf59e0b, 1, 1)
-  pcieConn.position.set(1.75, 0.05, 0)
-  gpu.add(pcieConn)
-  compGroups.gpu = gpu
-  scene.add(gpu)
-
-  // ── RAM ──
-  const ram = new THREE.Group()
-  ram.position.set(0.2, 0.08, 3.2)
-  ;[-0.38, 0.38].forEach((x, i) => {
-    const stick = legoBrick(0.26, 0.85, 2.0, i === 0 ? 0x22aa44 : 0x1a8833, 1, 2)
-    stick.position.set(x, 0.425, 0)
-    ram.add(stick)
-    // Čipy na stick
-    for (let c = 0; c < 4; c++) {
-      const chip = mbox(0.15, 0.06, 0.25, mat(0x111111, 0.2, 0.8))
-      chip.position.set(x + 0.16, 0.88, -0.7 + c * 0.45)
-      ram.add(chip)
-    }
-  })
-  compGroups.ram = ram
-  scene.add(ram)
-
-  // ── CPU COOLER ──
-  const cool = new THREE.Group()
-  cool.position.set(0.8, 0.08, 1.2)
-  // Heatsink žebra
-  for (let i = 0; i < 8; i++) {
-    const fin = mbox(1.1, 1.5, 0.055, mat(0xaaaacc, 0.35, 0.65))
-    fin.position.set(0, 0.75, -0.35 + i * 0.1)
-    cool.add(fin)
-  }
-  // Heatpipes
-  ;[-0.28, 0, 0.28].forEach(x => {
-    const pipe = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.04, 0.04, 1.5, 8),
-      mat(0xb87333, 0.3, 0.8)
-    )
-    pipe.position.set(x, 0.75, 0)
-    cool.add(pipe)
-  })
-  // Ventilátor
-  const cfFrm = legoBrick(1.05, 0.14, 1.05, 0x333344, 1, 1)
-  cfFrm.position.set(0, 0.75, 0.6)
-  cool.add(cfFrm)
-  const cfFan = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.4, 0.4, 0.1, 10),
-    mat(0xf59e0b, 0.5)
-  )
-  cfFan.position.set(0, 0.75, 0.72)
-  cfFan.rotation.x = Math.PI / 2
-  cool.add(cfFan)
-  compGroups.cool = cool
-  scene.add(cool)
-
-  // ── PSU ──
-  const psu = new THREE.Group()
-  psu.position.set(3.0, 0.08, -2.5)
-  const psuBody = legoBrick(2.5, 1.05, 1.8, 0x1a1a22, 2, 1)
-  psu.add(psuBody)
-  // Ventilátor
-  const psuFan = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.42, 0.42, 0.08, 12),
-    mat(0x333344, 0.7)
-  )
-  psuFan.position.set(0, 0.565, 0)
-  psuFan.rotation.x = Math.PI / 2
-  psu.add(psuFan)
-  // 80+ nálepka
-  const sticker = mbox(0.7, 0.03, 0.35, mat(0xf5c842, 0.6))
-  sticker.position.set(-0.7, 0.545, 0.5)
-  psu.add(sticker)
-  // Kabely
-  ;[-0.55, 0, 0.55].forEach(x => {
-    const cab = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.045, 0.045, 1.4, 6),
-      mat(0x111118, 0.9)
-    )
-    cab.position.set(x, 0.52, -1.5)
-    cab.rotation.x = Math.PI / 3.5
-    psu.add(cab)
-  })
-  compGroups.psu = psu
-  scene.add(psu)
-
-  // ── SSD ──
-  const ssd = new THREE.Group()
-  ssd.position.set(1.8, 0.08, 3.0)
-  const ssdBody = legoBrick(1.8, 0.13, 0.55, 0x222233, 1, 1)
-  ssd.add(ssdBody)
-  ;[0.4, 0.0, -0.4].forEach(x => {
-    const chip = mbox(0.3, 0.07, 0.3, mat(0x111111, 0.2, 0.8))
-    chip.position.set(x, 0.115, 0)
-    ssd.add(chip)
-  })
-  compGroups.ssd = ssd
-  scene.add(ssd)
-
-  // ── PC SKŘÍŇ (na stole vpravo) ──
+  // ── PC SKŘÍŇ ──
+  const CASE_POS = new THREE.Vector3(5.2, 0.08, -1.0)
   const pcCase = new THREE.Group()
-  pcCase.position.set(5.0, 0.08, -1.0)
-  // Tělo
-  const caseBody = legoBrick(3.0, 5.8, 2.4, 0x252530, 3, 2)
-  caseBody.position.y = 2.9
-  pcCase.add(caseBody)
-  // Skleněná bočnice
-  const glassMat = new THREE.MeshStandardMaterial({
-    color: 0x88aaff, transparent: true, opacity: 0.13,
-    roughness: 0.0, metalness: 0.15,
+  pcCase.position.copy(CASE_POS); scene.add(pcCase)
+
+  legoBrick(3.0,5.8,2.4,0x252530,3,2).position.set(0,2.9,0) && pcCase.add(
+    Object.assign(legoBrick(3.0,5.8,2.4,0x252530,3,2), { position: new THREE.Vector3(0,2.9,0) })
+  )
+  // Oprav — přidej shell správně
+  const caseShell = legoBrick(3.0,5.8,2.4,0x252530,3,2)
+  caseShell.position.set(0,2.9,0); pcCase.add(caseShell)
+
+  const glassMat = new THREE.MeshStandardMaterial({ color:0x88aaff, transparent:true, opacity:0.13, roughness:0.0, metalness:0.15 })
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(0.07,5.6,2.2), glassMat)
+  glass.position.set(-1.55,2.9,0); pcCase.add(glass)
+
+  ;[1.4,3.4].forEach(y => {
+    const ff = legoBrick(1.0,0.1,1.0,0x1a1a24,1,1); ff.position.set(0,y,1.28); pcCase.add(ff)
   })
-  const glass = new THREE.Mesh(new THREE.BoxGeometry(0.07, 5.6, 2.2), glassMat)
-  glass.position.set(-1.55, 2.9, 0)
-  pcCase.add(glass)
-  // RGB pásky (svítící)
-  ;[0xff2222, 0x2222ff, 0x22ff22, 0xff8800].forEach((c, i) => {
-    const strip = new THREE.Mesh(
-      new THREE.BoxGeometry(0.04, 0.09, 2.0),
-      new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 1.2 })
-    )
-    strip.position.set(-1.48, 0.9 + i * 1.1, 0)
-    pcCase.add(strip)
-  })
-  // Ventilátory vpředu
-  ;[1.4, 3.4].forEach(y => {
-    const ff = legoBrick(1.05, 0.1, 1.05, 0x1a1a24, 1, 1)
-    ff.position.set(0, y, 1.28)
-    pcCase.add(ff)
-    const fbl = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.42, 0.42, 0.06, 10),
-      mat(0x555566, 0.7)
-    )
-    fbl.position.set(0, y, 1.36)
-    fbl.rotation.x = Math.PI / 2
-    pcCase.add(fbl)
-  })
-  // Power LED
+
   const pwrLed = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.1, 0.1, 0.06, 10),
-    new THREE.MeshStandardMaterial({ color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 2.0 })
+    new THREE.CylinderGeometry(0.1,0.1,0.06,10),
+    new THREE.MeshStandardMaterial({ color:0x00ff88, emissive:0x00ff88, emissiveIntensity:0.5 })
   )
-  pwrLed.position.set(1.1, 5.7, 1.22)
-  pwrLed.rotation.x = Math.PI / 2
-  pcCase.add(pwrLed)
-  compGroups.case = pcCase
-  scene.add(pcCase)
+  pwrLed.position.set(1.1,5.7,1.22); pwrLed.rotation.x=Math.PI/2; pcCase.add(pwrLed)
 
-  // ── NÁŘADÍ ──
-  const tools = new THREE.Group()
-  tools.position.set(0.5, 0.06, -3.8)
-  // Šroubovák
-  const scrH = mbox(0.26, 0.14, 1.9, mat(0xcc2222, 0.7))
-  scrH.position.set(-1.2, 0.07, 0)
-  tools.add(scrH)
-  const scrB = mbox(0.08, 0.08, 0.9, mat(0xaaaacc, 0.25, 0.85))
-  scrB.position.set(-1.2, 0.07, 1.4)
-  tools.add(scrB)
-  // Klíč
-  const wrH = mbox(0.14, 0.09, 1.7, mat(0xaaaacc, 0.3, 0.8))
-  wrH.position.set(0.6, 0.045, 0)
-  wrH.rotation.z = 0.25
-  tools.add(wrH)
-  const wrEnd1 = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.055, 6, 12), mat(0xaaaacc, 0.3, 0.8))
-  wrEnd1.position.set(0.8, 0.045, 0.9)
-  wrEnd1.rotation.x = Math.PI / 2
-  tools.add(wrEnd1)
-  scene.add(tools)
-
-  // ── KOČKA 🐱 ──
-  const cat = new THREE.Group()
-  cat.position.set(6.8, 0.06, 3.2)
-  const catMat = mat(0xd4994a, 0.8)
-  // Tělo
-  const catBody = new THREE.Mesh(new THREE.SphereGeometry(0.58, 14, 10), catMat)
-  catBody.scale.set(1.0, 0.72, 1.15)
-  cat.add(catBody)
-  // Hlava
-  const catHead = new THREE.Mesh(new THREE.SphereGeometry(0.4, 14, 10), catMat)
-  catHead.position.set(0, 0.47, 0.4)
-  cat.add(catHead)
-  // Uši
-  ;[-0.19, 0.19].forEach(x => {
-    const ear = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.22, 5), catMat)
-    ear.position.set(x, 0.85, 0.4)
-    cat.add(ear)
-    const innerEar = new THREE.Mesh(
-      new THREE.ConeGeometry(0.06, 0.14, 5),
-      mat(0xf0a070, 0.9)
+  const rgbStrips = []
+  ;[0xff2222,0x2222ff,0x22ff22,0xff8800].forEach((c,i) => {
+    const strip = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04,0.09,2.0),
+      new THREE.MeshStandardMaterial({ color:c, emissive:c, emissiveIntensity:0 })
     )
-    innerEar.position.set(x, 0.85, 0.4)
-    cat.add(innerEar)
+    strip.position.set(-1.48,0.9+i*1.1,0); pcCase.add(strip); rgbStrips.push(strip)
   })
-  // Oči
-  ;[-0.12, 0.12].forEach(x => {
-    const eye = new THREE.Mesh(
-      new THREE.SphereGeometry(0.055, 8, 6),
-      mat(0x33bb66, 0.3)
-    )
-    eye.position.set(x, 0.5, 0.77)
-    cat.add(eye)
-    const pupil = new THREE.Mesh(
-      new THREE.SphereGeometry(0.028, 6, 5),
-      mat(0x050505, 0.1)
-    )
-    pupil.position.set(x, 0.5, 0.8)
-    cat.add(pupil)
-  })
-  // Ocas
-  const tail = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.065, 0.04, 1.3, 8),
-    catMat
-  )
-  tail.position.set(0.45, 0.3, -0.6)
-  tail.rotation.z = -0.65
-  tail.rotation.x = 0.35
-  cat.add(tail)
-  scene.add(cat)
 
-  // ── PRICE TAG ──
-  const tag = new THREE.Group()
-  tag.position.set(6.6, 0.045, 1.4)
-  const tagBase = mbox(2.4, 0.04, 1.0, mat(0xf5f0e8, 0.75))
-  tag.add(tagBase)
-  // Drátěný rámeček
-  const tagFrame = new THREE.Mesh(
-    new THREE.EdgesGeometry(new THREE.BoxGeometry(2.42, 0.05, 1.02)),
-    new THREE.LineBasicMaterial({ color: 0xb87333 })
-  )
-  tag.add(tagFrame)
-  scene.add(tag)
+  // ── CÍLE UVNITŘ SKŘÍNĚ (relativní k CASE_POS, v absolutních Y) ──
+  const TARGETS = {
+    mb:   { x:0,   y:1.8,  z:0     },
+    cpu:  { x:0.1, y:2.55, z:0.1   },
+    cool: { x:0.1, y:3.3,  z:0.1   },
+    gpu:  { x:0,   y:1.8,  z:0,    ry: Math.PI/2 },
+    ram:  { x:0.5, y:2.55, z:0.05  },
+    ssd:  { x:0.2, y:1.4,  z:0.2   },
+    psu:  { x:0,   y:0.55, z:0     },
+  }
 
-  // ── HIGHLIGHT SYSTÉM ──
-  // Každé compGroup dostane originální barvy uložené
-  const origEmissive = {}
-  Object.entries(compGroups).forEach(([key, group]) => {
-    origEmissive[key] = []
-    group.traverse(child => {
-      if (child.isMesh && child.material) {
-        origEmissive[key].push({ mesh: child, e: child.material.emissive?.clone?.() || new THREE.Color(0) })
+  // ── STARTOVNÍ POZICE NA STOLE ──
+  const DESK_POS = {
+    mb:   [-4.5, 0.15, -1.5],
+    cpu:  [-2.2, 0.15,  2.8],
+    gpu:  [-4.5, 0.15,  2.0],
+    ram:  [ 0.2, 0.15,  3.2],
+    cool: [ 0.8, 0.15,  1.2],
+    psu:  [ 3.0, 0.15, -2.5],
+    ssd:  [ 1.8, 0.15,  3.0],
+  }
+
+  // ── BUILDEŘI KOMPONENT ──
+  const MAKE = {
+    mb: () => {
+      const g = new THREE.Group()
+      g.add(legoBrick(3.5,0.24,3.0,0x1a3a18,4,3))
+      const sock = legoBrick(0.8,0.13,0.8,0x2a4a28,1,1); sock.position.set(0.4,0.185,-0.3); g.add(sock)
+      ;[-0.27,0.27].forEach(x=>{ const rs=legoBrick(0.17,0.34,1.2,0x111a11,1,1); rs.position.set(1.5+x,0.29,-0.3); g.add(rs) })
+      const p=legoBrick(2.4,0.11,0.17,0x111a11,2,1); p.position.set(-0.2,0.175,0.85); g.add(p)
+      return g
+    },
+    cpu: () => {
+      const g = new THREE.Group()
+      g.add(legoBrick(1.2,0.17,1.2,0x888899,1,1))
+      const die=mbox(0.7,0.11,0.7,mat(0x222230,0.25,0.85)); die.position.y=0.14; g.add(die)
+      return g
+    },
+    gpu: () => {
+      const g = new THREE.Group()
+      g.add(legoBrick(3.3,0.28,1.1,0x1e1e2a,3,1))
+      const sh=legoBrick(2.9,0.5,0.95,0x2d2d3a,3,1); sh.position.y=0.39; g.add(sh)
+      ;[-0.85,0.85].forEach(x=>{
+        const fr=new THREE.Mesh(new THREE.TorusGeometry(0.31,0.05,8,14),mat(0xf59e0b,0.5))
+        fr.position.set(x,0.68,0); fr.rotation.x=Math.PI/2; g.add(fr)
+        const hu=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.11,8),mat(0x111118,0.8))
+        hu.position.set(x,0.68,0); hu.rotation.x=Math.PI/2; g.add(hu)
+      })
+      return g
+    },
+    ram: () => {
+      const g = new THREE.Group()
+      ;[-0.33,0.33].forEach((x,i)=>{
+        const s=legoBrick(0.24,0.75,1.8,i?0x1a8833:0x22aa44,1,2); s.position.set(x,0.375,0); g.add(s)
+      })
+      return g
+    },
+    cool: () => {
+      const g = new THREE.Group()
+      for(let i=0;i<7;i++){
+        const f=mbox(0.95,1.3,0.05,mat(0xaaaacc,0.35,0.65)); f.position.set(0,0.65,-0.28+i*0.095); g.add(f)
       }
-    })
+      const cf=new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.36,0.08,10),mat(0xf59e0b,0.5))
+      cf.position.set(0,0.65,0.52); cf.rotation.x=Math.PI/2; g.add(cf)
+      return g
+    },
+    psu: () => {
+      const g = new THREE.Group()
+      g.add(legoBrick(2.2,0.95,1.6,0x1a1a22,2,1))
+      const f=new THREE.Mesh(new THREE.CylinderGeometry(0.38,0.38,0.06,12),mat(0x333344,0.7))
+      f.position.set(0,0.505,0); f.rotation.x=Math.PI/2; g.add(f)
+      ;[-0.5,0,0.5].forEach(x=>{
+        const c=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,1.2,6),mat(0x111118,0.9))
+        c.position.set(x,0.475,-1.4); c.rotation.x=Math.PI/3.5; g.add(c)
+      })
+      return g
+    },
+    ssd: () => {
+      const g = new THREE.Group()
+      g.add(legoBrick(1.6,0.12,0.5,0x222233,1,1))
+      ;[0.38,0,-0.38].forEach(x=>{ const c=mbox(0.27,0.065,0.26,mat(0x111111,0.2,0.8)); c.position.set(x,0.105,0); g.add(c) })
+      return g
+    },
+  }
+
+  // ── STAV ──
+  const compState  = {}  // 'desk' | 'flying_in' | 'inside' | 'flying_out'
+  const compGroups = {}
+  const animations = {}
+
+  Object.keys(DESK_POS).forEach(key => {
+    const g = MAKE[key](); const [x,y,z] = DESK_POS[key]
+    g.position.set(x,y,z); scene.add(g)
+    compGroups[key] = g; compState[key] = 'desk'
   })
 
-  const updateHighlights = (sel, activeCat) => {
-    Object.entries(compGroups).forEach(([key, group]) => {
-      const selected  = !!sel?.[key]
-      const isActive  = activeCat === key
-      const entries   = origEmissive[key] || []
-      entries.forEach(({ mesh }) => {
-        if (!mesh.material) return
-        if (!mesh.material._pcforgeCloned) {
-          mesh.material = mesh.material.clone()
-          mesh.material._pcforgeCloned = true
-        }
-        if (isActive) {
-          mesh.material.emissive = new THREE.Color(0xf59e0b)
-          mesh.material.emissiveIntensity = 0.25
-        } else if (selected) {
-          mesh.material.emissive = new THREE.Color(0x88cc44)
-          mesh.material.emissiveIntensity = 0.12
-        } else {
-          mesh.material.emissive = new THREE.Color(0x000000)
-          mesh.material.emissiveIntensity = 0
+  // Nářadí
+  const tools = new THREE.Group(); tools.position.set(0.5,0.06,-3.8); scene.add(tools)
+  const sh=mbox(0.26,0.14,1.9,mat(0xcc2222,0.7)); sh.position.set(-1.2,0.07,0); tools.add(sh)
+  const sb=mbox(0.08,0.08,0.9,mat(0xaaaacc,0.25,0.85)); sb.position.set(-1.2,0.07,1.4); tools.add(sb)
+  const wr=mbox(0.14,0.09,1.7,mat(0xaaaacc,0.3,0.8)); wr.position.set(0.6,0.045,0); wr.rotation.z=0.25; tools.add(wr)
+
+  // Kočka
+  const cat=new THREE.Group(); cat.position.set(6.8,0.06,3.2); scene.add(cat)
+  const catM=mat(0xd4994a,0.8)
+  const cb=new THREE.Mesh(new THREE.SphereGeometry(0.58,14,10),catM); cb.scale.set(1,.72,1.15); cat.add(cb)
+  const ch=new THREE.Mesh(new THREE.SphereGeometry(0.4,14,10),catM); ch.position.set(0,.47,.4); cat.add(ch)
+  ;[-0.19,0.19].forEach(x=>{const e=new THREE.Mesh(new THREE.ConeGeometry(0.11,0.22,5),catM); e.position.set(x,.85,.4); cat.add(e)})
+  ;[-0.12,0.12].forEach(x=>{const e=new THREE.Mesh(new THREE.SphereGeometry(0.055,8,6),mat(0x33bb66,0.3)); e.position.set(x,.5,.77); cat.add(e)})
+  const ctail=new THREE.Mesh(new THREE.CylinderGeometry(0.065,0.04,1.3,8),catM)
+  ctail.position.set(.45,.3,-.6); ctail.rotation.z=-.65; ctail.rotation.x=.35; cat.add(ctail)
+
+  // ── HIGHLIGHT ──
+  const setActive = (key) => {
+    Object.values(compGroups).forEach(grp => {
+      grp.traverse(c => {
+        if (c.isMesh) {
+          if (!c.material._pcf) { c.material=c.material.clone(); c.material._pcf=true }
+          c.material.emissive.set(0x000000); c.material.emissiveIntensity=0
         }
       })
     })
+    if (!key || !compGroups[key]) return
+    compGroups[key].traverse(c => {
+      if (c.isMesh) {
+        if (!c.material._pcf) { c.material=c.material.clone(); c.material._pcf=true }
+        c.material.emissive.set(0xf59e0b); c.material.emissiveIntensity=0.3
+      }
+    })
   }
 
-  // První vykreslení
-  updateHighlights(initialSel, initialActiveCat)
+  const easeInOut = t => t<.5 ? 2*t*t : -1+(4-2*t)*t
 
-  // ── ANIMACE ──
-  let frameId
-  let t = 0
-  let fanAngle = 0
+  const getTargetWorldPos = key => {
+    const T = TARGETS[key]
+    if (!T) return CASE_POS.clone()
+    return new THREE.Vector3(CASE_POS.x + T.x, T.y, CASE_POS.z + T.z)
+  }
 
-  // Ref na ventilátor lopatky pro animaci
-  const fanBlades = []
-  scene.traverse(child => {
-    if (
-      child.isMesh &&
-      child.geometry?.type === 'CylinderGeometry' &&
-      child.material?.emissive?.r === 0 &&
-      child.material?.color?.r < 0.5
-    ) {
-      // pravděpodobně ventilátor (tmavý disk)
+  const updateRgb = () => {
+    const n = Object.values(compState).filter(s=>s==='inside').length
+    rgbStrips.forEach(s=>{ s.material.emissiveIntensity = n>0 ? Math.min(n/3,1)*1.0 : 0 })
+    pwrLed.material.emissiveIntensity = n>0 ? 2.0 : 0.4
+  }
+
+  const mountComponent = (key, instant=false) => {
+    const g = compGroups[key]; if (!g) return
+    if (compState[key]==='inside') return
+    compState[key]='flying_in'
+    const fromP=g.position.clone(), toP=getTargetWorldPos(key)
+    const fromR=g.rotation.clone(), toRY=TARGETS[key]?.ry||0
+    if (instant) {
+      g.position.copy(toP); g.rotation.set(0,toRY,0)
+      compState[key]='inside'; updateRgb(); return
     }
-  })
+    animations[key]={ t:0, dur:0.75, fromP, toP, fromR, toRY,
+      onDone:()=>{ compState[key]='inside'; updateRgb() } }
+  }
+
+  const unmountComponent = key => {
+    const g=compGroups[key]; if(!g) return
+    if(compState[key]==='desk') return
+    compState[key]='flying_out'
+    const fromP=g.position.clone()
+    const [dx,dy,dz]=DESK_POS[key], toP=new THREE.Vector3(dx,dy,dz)
+    const fromR=g.rotation.clone()
+    animations[key]={ t:0, dur:0.65, fromP, toP, fromR, toRY:0,
+      onDone:()=>{ compState[key]='desk'; updateRgb() } }
+  }
+
+  let frameId, tGlobal=0
 
   const animate = () => {
-    frameId = requestAnimationFrame(animate)
-    t += 0.004
-    fanAngle += 0.03
+    frameId=requestAnimationFrame(animate)
+    tGlobal+=0.004
 
-    // Kočka — jemné dýchání
-    cat.position.y = 0.06 + Math.sin(t * 1.1) * 0.018
+    const dt=0.016
+    Object.entries(animations).forEach(([key,anim])=>{
+      if(!anim) return
+      anim.t+=dt/anim.dur
+      const p=Math.min(anim.t,1), e=easeInOut(p)
+      const g=compGroups[key]
+      if(g){
+        // Parabolická dráha — výška oblouku závisí na vzdálenosti
+        const arch=Math.sin(p*Math.PI)*4.0
+        g.position.lerpVectors(anim.fromP, anim.toP, e)
+        g.position.y+=arch
+        // Lehká rotace během letu (barrel roll efekt)
+        g.rotation.x=anim.fromR.x*(1-e)
+        g.rotation.y=anim.fromR.y+(anim.toRY-anim.fromR.y)*e + Math.sin(p*Math.PI)*0.8
+        g.rotation.z=anim.fromR.z*(1-e)
+      }
+      if(p>=1){
+        anim.onDone?.(); delete animations[key]
+        if(g){
+          if(compState[key]==='inside'){
+            g.position.copy(getTargetWorldPos(key))
+            g.rotation.set(0,TARGETS[key]?.ry||0,0)
+          } else {
+            const [dx,dy,dz]=DESK_POS[key]; g.position.set(dx,dy,dz); g.rotation.set(0,0,0)
+          }
+        }
+      }
+    })
 
-    // Mírné kolísání lampy
-    lamp.intensity = 0.8 + Math.sin(t * 0.7) * 0.06
+    // Kočka — dýchání
+    cat.position.y=0.06+Math.sin(tGlobal*1.1)*0.018
 
-    renderer.render(scene, camera)
+    // Lamp flicker
+    lamp.intensity=0.8+Math.sin(tGlobal*0.7)*0.06
+
+    // RGB pulzování
+    const n=Object.values(compState).filter(s=>s==='inside').length
+    if(n>0){
+      rgbStrips.forEach((s,i)=>{
+        s.material.emissiveIntensity=Math.min(n/3,1)*(0.7+Math.sin(tGlobal*2+i*1.2)*0.35)
+      })
+    }
+
+    renderer.render(scene,camera)
   }
   animate()
 
-  // ── RESIZE ──
-  const onResize = () => {
-    if (!container) return
-    const W = container.clientWidth
-    const H = container.clientHeight
-    const asp = W / H
-    camera.left   = -d * asp
-    camera.right  =  d * asp
-    camera.updateProjectionMatrix()
-    renderer.setSize(W, H)
+  const onResize=()=>{
+    if(!container) return
+    const W=container.clientWidth,H=container.clientHeight,a=W/H
+    camera.left=-d*a; camera.right=d*a; camera.updateProjectionMatrix()
+    renderer.setSize(W,H)
   }
-  window.addEventListener('resize', onResize)
+  window.addEventListener('resize',onResize)
 
-  // ── API ──
-  onReady({ updateHighlights })
+  onReady({ mountComponent, unmountComponent, setActive })
 
-  // ── CLEANUP ──
-  return () => {
+  return ()=>{
     cancelAnimationFrame(frameId)
-    window.removeEventListener('resize', onResize)
+    window.removeEventListener('resize',onResize)
     renderer.dispose()
-    if (container.contains(renderer.domElement)) {
-      container.removeChild(renderer.domElement)
-    }
+    if(container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
   }
 }
